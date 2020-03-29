@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "221787388875",
+    "firebase_url": "https://zlay-d49d1.firebaseio.com",
+    "project_id": "zlay-d49d1",
+    "storage_bucket": "zlay-d49d1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221787388875:android:20c6dc1278f178eb",
+        "android_client_info": {
+          "package_name": "net.zlayit.zlay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "221787388875-c62kr2tac5jsm2gk5u9m0fcic42ho5p3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFE4YhgjEhW73WYMgrKyTy1Z3Wmra_V4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "221787388875-c62kr2tac5jsm2gk5u9m0fcic42ho5p3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
