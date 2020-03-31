@@ -187,15 +187,42 @@ class _imageSliderBuilder extends State<ImageSlider>{
   }
 }
 
-class PostTimelineStories extends StatelessWidget {
+
+class PostTimelineStories extends StatefulWidget {
+  @override
+  _PostTimelineStories createState() => _PostTimelineStories();
+}
+
+class _PostTimelineStories extends State<PostTimelineStories> {
+  var data;
+  var refreshKey = GlobalKey<RefreshIndicatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    refreshList();
+  }
+
+  Future<Null> refreshList() async {
+    refreshKey.currentState?.show(atTop: false);
+    await Future.delayed(Duration(seconds: 2));
+    data = await __fetchPosts();
+    __postListView(data);
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Post>>(
       future: __fetchPosts(),
       builder: (context, snapshot){
         if(snapshot.hasData){
-          List<Post> data = snapshot.data;
-          return __postListView(data);
+          data = snapshot.data;
+          return RefreshIndicator(
+            key: refreshKey,
+            onRefresh: refreshList,
+            child: __postListView(data),
+          );
         } else if(snapshot.hasError) {
           return Text("${snapshot.error}");
         }
@@ -220,7 +247,7 @@ class PostTimelineStories extends StatelessWidget {
 
   ListView __postListView(data){
     return ListView.builder(
-      itemCount: data.length,
+      itemCount: data?.length,
       itemBuilder: (context, index){
         if(data[index].mediaType == 1){
           return _timelineImagesPostBuilder(data[index]);
@@ -280,22 +307,13 @@ class PostTimelineStories extends StatelessWidget {
         ),
         ImageSlider(media: post.postMedia),
         Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post.title),
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post.postCreatedAt, style: TextStyle(fontSize: 12)),
-        ),
-        Container(
-            height: 45,
             child: Row(
               children: <Widget>[
                 Container(
                     padding: EdgeInsets.all(5),
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.favorite_border, size: 28),
+                        Icon(Icons.favorite_border, size: 24),
                         Text(post.postLikes, style: TextStyle(fontSize: 12)),
                       ],
                     )
@@ -304,7 +322,7 @@ class PostTimelineStories extends StatelessWidget {
                   padding: EdgeInsets.all(5),
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.chat_bubble_outline, size: 28),
+                      Icon(Icons.chat_bubble_outline, size: 24),
                       Text('', style: TextStyle(fontSize: 12)),
                     ],
                   ),
@@ -320,13 +338,21 @@ class PostTimelineStories extends StatelessWidget {
                   padding: EdgeInsets.all(5),
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.share, size: 28),
+                      Icon(Icons.share, size: 24),
                       Text('', style: TextStyle(fontSize: 12)),
                     ],
                   ),
                 ),
               ],
             )
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text(post.title),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text(post.postCreatedAt, style: TextStyle(fontSize: 12)),
         ),
       ],
     ),
@@ -377,18 +403,13 @@ class PostTimelineStories extends StatelessWidget {
         ),
         _videoPlayerWidget(post),
         Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post.title, style: TextStyle(fontSize: 14)),
-        ),
-        Container(
-            height: 45,
             child: Row(
               children: <Widget>[
                 Container(
                     padding: EdgeInsets.all(5),
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.favorite_border, size: 28),
+                        Icon(Icons.favorite_border, size: 24),
                         Text(post.postLikes, style: TextStyle(fontSize: 12)),
                       ],
                     )
@@ -397,7 +418,7 @@ class PostTimelineStories extends StatelessWidget {
                   padding: EdgeInsets.all(5),
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.chat_bubble_outline, size: 28),
+                      Icon(Icons.chat_bubble_outline, size: 24),
                       Text('', style: TextStyle(fontSize: 12)),
                     ],
                   ),
@@ -413,13 +434,21 @@ class PostTimelineStories extends StatelessWidget {
                   padding: EdgeInsets.all(5),
                   child: Row(
                     children: <Widget>[
-                      Icon(Icons.share, size: 28),
+                      Icon(Icons.share, size: 24),
                       Text('', style: TextStyle(fontSize: 12)),
                     ],
                   ),
                 ),
               ],
             )
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text(post.title, style: TextStyle(fontSize: 14)),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text(post.postCreatedAt, style: TextStyle(fontSize: 12)),
         ),
       ],
     ),

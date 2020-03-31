@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:Zlay/widgets/toast.dart';
 
 class NewTimelinePost extends StatefulWidget {
   final int mediaType;
@@ -22,6 +24,17 @@ class NewTimelinePost extends StatefulWidget {
 class _newPost extends State<NewTimelinePost> {
   var _image;
   var _video;
+  var _mediaType;
+
+  var _timelineTextInput = TextEditingController();
+
+  // dispose after use
+  @override
+  void dispose() {
+    // clean up the controller when the widget is disposed.
+    _timelineTextInput.dispose();
+    super.dispose();
+  }
 
   // This function will helps you to pick and Image from Gallery
   Future pickImage() async {
@@ -33,18 +46,53 @@ class _newPost extends State<NewTimelinePost> {
     }
   }
 
+  // Upload Timeline post
+  uploadTimelinePost(String text) async {
+    var prefs = await SharedPreferences.getInstance();
+    var userId = prefs.getString('_userId');
+
+    // init file post request
+    var request = http.MultipartRequest("POST", Uri.parse("http://zlayit.net/timeline/post"));
+    request.fields["post_text"]   = text;
+    request.fields["user_id"]     = userId;
+    request.fields["media_type"]  = "${_mediaType}";
+    request.fields["is_multiple"] = "1"; // 1 means single : 2 means it's multiple
+
+    // init media file section
+    var media = await http.MultipartFile.fromPath("post_media", _image.path);
+
+    request.files.add(media);
+
+    // get response from server
+    var response = await request.send();
+    var responseData = await response.stream.toBytes();
+    var responseString = String.fromCharCodes(responseData);
+    var responseObject = json.decode(responseString);
+
+    print('Timeline post response: ');
+    print(responseObject);
+
+    // return response
+    return responseObject;
+  }
+
   // init state
   @override
   void initState(){
     super.initState();
-    // show selected image
-    if(this.widget.mediaType == 1){
-      pickImage();
-    }
 
-    if(this.widget.mediaType == 2){
+    setState(() {
+      _mediaType = this.widget.mediaType;
 
-    }
+      // show selected image
+      if(this.widget.mediaType == 1){
+        pickImage();
+      }
+
+      if(this.widget.mediaType == 2){
+
+      }
+    });
   }
 
   // chat input area
@@ -83,6 +131,7 @@ class _newPost extends State<NewTimelinePost> {
             flex: 1,
             fit: FlexFit.tight,
             child: TextField(
+              controller: _timelineTextInput,
               decoration: new InputDecoration(
                   border: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -96,9 +145,18 @@ class _newPost extends State<NewTimelinePost> {
               margin: EdgeInsets.fromLTRB(5,5,10,5),
               child: Icon(Icons.share, color: Colors.grey[700]),
             ),
-            onTap: (){
+            onTap: () async {
               // share your timeline
               print('sharing timeline posts');
+              var timelineResponse = await uploadTimelinePost(_timelineTextInput.text);
+              Navigator.pop(context);
+//              if(timelineResponse['status'] == "success"){
+//                ToastMessage('success', timelineResponse['message']);
+//                // goto index widgets
+//                Navigator.pop(context);
+//              }else if(timelineResponse['status'] == "error"){
+//                ToastMessage('error', timelineResponse['message']);
+//              }
             },
           )
         ],

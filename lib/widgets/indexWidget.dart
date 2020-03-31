@@ -80,21 +80,26 @@ class _indexWidget extends State<IndexWidget> {
   // bottom navigation
   Widget _bottomNavigation(){
     return  BottomNavigationBar(
+      backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(
+          backgroundColor: Colors.white,
           icon: Icon(Icons.home),
           title: Text(''),
         ),
         BottomNavigationBarItem(
+          backgroundColor: Colors.white,
           icon: Icon(Icons.mail_outline),
           title: Text(''),
         ),
         BottomNavigationBarItem(
+          backgroundColor: Colors.white,
           icon: Icon(Icons.favorite_border),
           title: Text(''),
         ),
         BottomNavigationBarItem(
+          backgroundColor: Colors.white,
           icon: Icon(Icons.notifications_none),
           title: Text(''),
         ),
@@ -121,6 +126,7 @@ class _indexWidget extends State<IndexWidget> {
     if(_selectedIndex == 0){
       return SafeArea(
         child:  Scaffold(
+          backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
           body: _activeScreen(),
           floatingActionButton: _unicornDialerWidget(),
@@ -130,6 +136,7 @@ class _indexWidget extends State<IndexWidget> {
     }else{
       return SafeArea(
         child:  Scaffold(
+          backgroundColor: Colors.white,
           resizeToAvoidBottomInset: false,
           body: _activeScreen(),
           bottomNavigationBar: _bottomNavigation(),
