@@ -1,4 +1,3 @@
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -10,70 +9,358 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:Zlay/widgets/toast.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:progress_indicators/progress_indicators.dart';
+import 'package:Zlay/widgets/loader.dart';
+import 'package:chewie/chewie.dart';
+import 'package:video_player/video_player.dart';
+import 'package:flutter_uploader/flutter_uploader.dart';
 
-class NewTimelinePost extends StatefulWidget {
-  final int mediaType;
-
-  // init string
-  NewTimelinePost({Key key, this.mediaType}) : super(key: key);
+class ImageSlider extends StatefulWidget {
+  final List<Asset> media;
+  ImageSlider({Key key, this.media}) : super(key: key);
 
   @override
-  _newPost createState() => _newPost();
+  _ImageSlider createState() => _ImageSlider();
 }
 
-class _newPost extends State<NewTimelinePost> {
-  var _image;
-  var _video;
-  var _mediaType;
+class _ImageSlider extends State<ImageSlider>{
+  int _current = 0;
 
-  var _timelineTextInput = TextEditingController();
-
-  // dispose after use
-  @override
-  void dispose() {
-    // clean up the controller when the widget is disposed.
-    _timelineTextInput.dispose();
-    super.dispose();
+  List<T> map<T>(List list, Function handler) {
+    List<T> result = [];
+    for (var i = 0; i < list.length; i++) {
+      result.add(handler(i, list[i]));
+    }
+    return result;
   }
 
-  // This function will helps you to pick and Image from Gallery
-  Future pickImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    if(image != null){
-      setState(() {
-        _image = image;
-      });
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget _buildIndicator(media) {
+    if(media.length > 1){
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: map<Widget>(media, (index, url) {
+          return Container(
+            width: 8.0,
+            height: 8.0,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _current == index ? Colors.blueAccent : Colors.grey,
+            ),
+          );
+        }),
+      );
+    }else{
+      return Row(
+        children: <Widget>[],
+      );
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    List<Asset> mediaList = this.widget.media;
+
+    return Container(
+      child: Column(
+        children: <Widget>[
+          CarouselSlider(
+            height: 400.0,
+            enableInfiniteScroll: false,
+            initialPage: 0,
+            viewportFraction: 1.0,
+            aspectRatio: 2.0,
+            autoPlay: false,
+            enlargeCenterPage: false,
+            onPageChanged: (index) {
+              setState(() {
+                _current = index;
+              });
+            },
+            items: mediaList.map((asset) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: double.infinity,
+//                    decoration: BoxDecoration(
+//                        image: new DecorationImage(
+//                          fit: BoxFit.cover,
+//                          image: new AssetImage(asset.toString()),
+//                        )
+//                    ),
+//                    child: Align(
+//                      alignment: FractionalOffset.bottomCenter,
+//                      child: _buildIndicator(mediaList),
+//                    )
+                  child: AssetThumb(
+                    asset: asset,
+                    width: asset.originalWidth,
+                    height: asset.originalHeight,
+                    quality: 100
+                  ),
+                 );
+                },
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VideoSlider extends StatefulWidget {
+  final List media;
+
+  VideoSlider({Key key, this.media}) : super(key: key);
+
+  _VideoSlider createState() => _VideoSlider();
+}
+
+class _VideoSlider extends State<VideoSlider>{
+  int _current = 0;
+
+  List<T> map<T>(List list, Function handler) {
+    List<T> result = [];
+    for (var i = 0; i < list.length; i++) {
+      result.add(handler(i, list[i]));
+    }
+    return result;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget _buildIndicator(media) {
+    if(media.length > 1){
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: map<Widget>(media, (index, url) {
+          return Container(
+            width: 8.0,
+            height: 8.0,
+            margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _current == index ? Colors.blueAccent : Colors.grey,
+            ),
+          );
+        }),
+      );
+    }else{
+      return Row(
+        children: <Widget>[],
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List mediaList = this.widget.media;
+
+    return Container(
+      child: Column(
+        children: <Widget>[
+          CarouselSlider(
+            height: 400.0,
+            enableInfiniteScroll: false,
+            initialPage: 0,
+            viewportFraction: 1.0,
+            aspectRatio: 2.0,
+            autoPlay: false,
+            enlargeCenterPage: false,
+            onPageChanged: (index) {
+              setState(() {
+                _current = index;
+              });
+            },
+            items: mediaList.map((i) {
+              print('Playing $i');
+              return Builder(
+                builder: (BuildContext context) {
+                  return Container(
+                    width: double.infinity,
+                    child: new VideoPlayer(url: i.toString()),
+                  );
+                },
+              );
+            }).toList(),
+          ),
+          SizedBox(
+            height: 25,
+            child: new Align(
+              alignment: FractionalOffset.bottomCenter,
+              child: _buildIndicator(mediaList),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class VideoPlayer extends StatefulWidget {
+  final String url;
+  VideoPlayer({Key key, this.url}) : super(key: key);
+
+  @override
+  _VideoPlayer createState() => _VideoPlayer();
+}
+
+class _VideoPlayer extends State<VideoPlayer>{
+  VideoPlayerController videoPlayerController;
+  ChewieController chewieController;
+  @override
+  void initState() {
+    super.initState();
+    videoPlayerController = VideoPlayerController.network(this.widget.url)..initialize();
+    chewieController = ChewieController(
+      videoPlayerController: videoPlayerController,
+      aspectRatio: 3 / 2,
+      autoPlay: false,
+      looping: false,
+      showControls: true,
+      materialProgressColors: ChewieProgressColors(
+        playedColor: Colors.blueAccent,
+        handleColor: Colors.blue,
+        backgroundColor: Colors.grey,
+        bufferedColor: Colors.lightGreen,
+      ),
+      placeholder: Container(
+        color: Colors.grey,
+      ),
+      autoInitialize: false,
+    );
+  }
+
+  @override
+  void dispose() {
+    videoPlayerController.dispose();
+    chewieController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return  SizedBox(
+      child: Chewie(
+          controller: chewieController
+      ),
+    );
+  }
+}
+
+
+class NewTimelinePost extends StatefulWidget {
+  final int mediaType;
+  NewTimelinePost({Key key, this.mediaType}) : super(key: key);
+
+  @override
+  _NewTimelinePost createState() => _NewTimelinePost();
+}
+
+class _NewTimelinePost extends State<NewTimelinePost> {
+//  final uploader = FlutterUploader();
+  var _mediaType;
+  var _timelineTextInput = TextEditingController();
+  var showLoader = false;
+  var isImage;
+
+  List<File> filesBox = [];
+  List<Asset> images = List<Asset>();
+  List<File> videos = List<File>();
+  String _error = 'No Error Dectected';
+
+  Future<void> loadAssets() async {
+    List<Asset> resultList = List<Asset>();
+    String error = 'No Error Dectected';
+
+    try {
+      resultList = await MultiImagePicker.pickImages(
+        maxImages: 300,
+        enableCamera: true,
+        selectedAssets: images,
+        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
+        materialOptions: MaterialOptions(
+          actionBarColor: "#2b2dad",
+          actionBarTitle: "select photo",
+          allViewTitle: "All Photos",
+          useDetailsView: false,
+          selectCircleStrokeColor: "#000000",
+        ),
+      );
+    } on Exception catch (e) {
+      error = e.toString();
+      Navigator.pop(context);
+    }
+
+    if (!mounted) Navigator.pop(context);
+
+    setState(() {
+      images = resultList;
+      _error = error;
+
+      // prepare list
+      getFilePathToList(images);
+    });
+  }
+
+  Future<void> loadVideoAsset() async {
+    String error = 'No Error Dectected';
+    List<File> files;
+    try {
+      files = await FilePicker.getMultiFile(
+          type: FileType.custom,
+          allowedExtensions: ['mp4', 'avi']
+      );
+    } on Exception catch (e) {
+      error = e.toString();
+      Navigator.pop(context);
+    }
+
+    if(!mounted) Navigator.pop(context);
+
+    setState(() {
+      videos = files;
+      getVideoFilePathToList(videos);
+    });
+  }
+
+  Future<void> getFilePathToList(images) async {
+    for (Asset asset in images) {
+      var filePath = await FlutterAbsolutePath.getAbsolutePath(asset.identifier);
+      var fileProper = await getImageFileFromAsset(filePath);
+      filesBox.add(fileProper);
+    }
+  }
+
+  Future<void> getVideoFilePathToList(videos) async {
+    for (File asset in videos) {
+      filesBox.add(asset);
+    }
+  }
+
+  Future<File> getImageFileFromAsset(String path) async {
+    final file = File(path);
+    return file;
+  }
+
+  BuildContext context;
+
   // Upload Timeline post
   uploadTimelinePost(String text) async {
-    var prefs = await SharedPreferences.getInstance();
-    var userId = prefs.getString('_userId');
 
-    // init file post request
-    var request = http.MultipartRequest("POST", Uri.parse("http://zlayit.net/timeline/post"));
-    request.fields["post_text"]   = text;
-    request.fields["user_id"]     = userId;
-    request.fields["media_type"]  = "${_mediaType}";
-    request.fields["is_multiple"] = "1"; // 1 means single : 2 means it's multiple
-
-    // init media file section
-    var media = await http.MultipartFile.fromPath("post_media", _image.path);
-
-    request.files.add(media);
-
-    // get response from server
-    var response = await request.send();
-    var responseData = await response.stream.toBytes();
-    var responseString = String.fromCharCodes(responseData);
-    var responseObject = json.decode(responseString);
-
-    print('Timeline post response: ');
-    print(responseObject);
-
-    // return response
-    return responseObject;
   }
 
   // init state
@@ -86,13 +373,45 @@ class _newPost extends State<NewTimelinePost> {
 
       // show selected image
       if(this.widget.mediaType == 1){
-        pickImage();
+        isImage = true;
+        loadAssets();
       }
 
       if(this.widget.mediaType == 2){
-
+        isImage = false;
+        loadVideoAsset();
       }
     });
+  }
+
+  // dispose after use
+  @override
+  void dispose() {
+    // clean up the controller when the widget is disposed.
+    _timelineTextInput.dispose();
+    super.dispose();
+  }
+
+  // upload share widget
+  Widget _uploadShareBtn(context){
+    return GestureDetector(
+      child: Container(
+        margin: EdgeInsets.fromLTRB(5,5,10,5),
+        child: Icon(Icons.share, color: Colors.grey[700]),
+      ),
+      onTap: () async {
+        // share your timeline
+        print('sharing timeline posts');
+        var timelineResponse = await uploadTimelinePost(_timelineTextInput.text);
+        if(timelineResponse['status'] == "success"){
+          ToastMessage('success', timelineResponse['message']);
+          // goto index widgets
+          Navigator.pop(context);
+        }else if(timelineResponse['status'] == "error"){
+          ToastMessage('error', timelineResponse['message']);
+        }
+      },
+    );
   }
 
   // chat input area
@@ -140,27 +459,26 @@ class _newPost extends State<NewTimelinePost> {
               ),
             ),
           ),
-          GestureDetector(
-            child: Container(
-              margin: EdgeInsets.fromLTRB(5,5,10,5),
-              child: Icon(Icons.share, color: Colors.grey[700]),
-            ),
-            onTap: () async {
-              // share your timeline
-              print('sharing timeline posts');
-              var timelineResponse = await uploadTimelinePost(_timelineTextInput.text);
-              Navigator.pop(context);
-//              if(timelineResponse['status'] == "success"){
-//                ToastMessage('success', timelineResponse['message']);
-//                // goto index widgets
-//                Navigator.pop(context);
-//              }else if(timelineResponse['status'] == "error"){
-//                ToastMessage('error', timelineResponse['message']);
-//              }
-            },
+          SizedBox(
+              child: showLoader ? ShowLoader() : _uploadShareBtn(context),
           )
         ],
       ),
+    );
+  }
+
+  // build picker view
+  Widget buildGridView() {
+    return GridView.count(
+      crossAxisCount: 3,
+      children: List.generate(images.length, (index) {
+        Asset asset = images[index];
+        return AssetThumb(
+          asset: asset,
+          width: 300,
+          height: 300,
+        );
+      }),
     );
   }
 
@@ -209,19 +527,7 @@ class _newPost extends State<NewTimelinePost> {
                     ],
                   ),
                 ),
-                Column(
-                  children: <Widget>[
-                    SizedBox(
-                      child: Column(
-                        children: <Widget>[
-                          Container(
-                            child:  _image == null ? Text('No image selected') : Image.file(_image),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                isImage ? ImageSlider(media: images) : VideoSlider(media: filesBox),
                 SizedBox(
                   child: _timelineInputArea(context),
                 ),

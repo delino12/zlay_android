@@ -6,8 +6,28 @@ import 'package:Zlay/repository/services.dart';
 
 void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
+Future<bool> isLoginStatus() async {
+  var prefs = await SharedPreferences.getInstance();
+  var value = prefs.getBool('_isLogin') ?? false;
+  return value;
+}
+
+class MyApp extends StatefulWidget {
+
+  @override
+  _MyApp createState() => _MyApp();
+}
+
+class _MyApp extends State<MyApp> {
   // This widget is the root of your application.
+  bool isLogin;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,7 +36,17 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(title: 'Zlay'),
+      home: FutureBuilder<bool>(
+          future: isLoginStatus(),
+          builder:(BuildContext context, AsyncSnapshot<bool> snapshot){
+            if (snapshot.data == false){
+              return LoginWidget();
+            }
+            else{
+              return MyHomePage(title: 'Timeline');
+            }
+          }
+      ),
     );
   }
 }
@@ -30,34 +60,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _isLogin = false;
-
-  Future<void> _isLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getBool('_isLogin') ?? false;
-
-    setState(() {
-      _isLogin = value;
-    });
-  }
 
   @override
   void initState(){
     super.initState();
     FirebaseNotifications().setUpFirebase();
-    _isLoginStatus();
-  }
-
-  Widget _buildAppBody (context){
-    if(_isLogin == true) {
-      return IndexWidget(title: 'Timeline');
-    } else {
-      return LoginWidget();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return  _buildAppBody(context);
+    return IndexWidget(title: 'Timeline');
   }
 }

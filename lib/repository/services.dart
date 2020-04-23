@@ -9,6 +9,46 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+// register user device token
+Future registerDeviceToken(token) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  String deviceToken = token;
+
+  print('UserID: $userId');
+  print('Device Token: $deviceToken');
+  String queryString = "?user_id=$userId&device_token=$deviceToken";
+
+  final http.Response response = await http.post('http://zlayit.net/firebase/device$queryString',
+    headers: <String, String>{
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'user_id': userId,
+    },
+    body: jsonEncode(<String, String>{
+      'device_token': deviceToken,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else {
+    print('Device token registration failed try again!');
+  }
+}
+
+// build a local notification popup
+Future displayLocalNotification(payload) async {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
+
+  var android       = new AndroidInitializationSettings('@mipmap/ic_launcher');
+  var iOS           = new IOSInitializationSettings();
+  var initSetttings = new InitializationSettings(android, iOS);
+}
+
+
 class DisplayNotification extends StatefulWidget {
 
   @override
@@ -16,18 +56,15 @@ class DisplayNotification extends StatefulWidget {
 }
 
 class _displayNotificationState extends State<DisplayNotification> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
 
   @override
   void initState(){
     super.initState();
-    flutterLocalNotificationsPlugin = new FlutterLocalNotificationsPlugin();
-    var android = new AndroidInitializationSettings('@mipmap/ic_launcher');
-    var iOS = new IOSInitializationSettings();
-    var initSetttings = new InitializationSettings(android, iOS);
-    flutterLocalNotificationsPlugin.initialize(initSetttings);
+
   }
 
+  // when notification is selected
   Future onSelectNotification(String payload) {
     debugPrint("payload : $payload");
     showDialog(
@@ -39,14 +76,15 @@ class _displayNotificationState extends State<DisplayNotification> {
     );
   }
 
+  // show notifications
   showNotification() async {
     var android = new AndroidNotificationDetails('channel id', 'channel NAME', 'CHANNEL DESCRIPTION',
         priority: Priority.High,importance: Importance.Max
     );
     var iOS = new IOSNotificationDetails();
     var platform = new NotificationDetails(android, iOS);
-    await flutterLocalNotificationsPlugin.show(0, 'New Video is out', 'Flutter Local Notification', platform,
-        payload: 'Nitish Kumar Singh is part time Youtuber');
+//    await flutterLocalNotificationsPlugin.show(0, 'New Video is out', 'Flutter Local Notification', platform,
+//        payload: 'Nitish Kumar Singh is part time Youtuber');
   }
 
   @override
@@ -66,25 +104,27 @@ class FirebaseNotifications {
 
   void firebaseCloudMessaging_Listeners() {
     if (Platform.isIOS) iOS_Permission();
-    _firebaseMessaging.getToken().then((token) {
+    _firebaseMessaging.getToken().then((token) async {
       print('Device token: ');
       print(token);
+      var tokenResponse = await registerDeviceToken(token);
+      print(tokenResponse);
     });
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-        var android = new AndroidNotificationDetails('channel id', 'channel NAME', 'CHANNEL DESCRIPTION',
-            priority: Priority.High,importance: Importance.Max
-        );
-        var iOS = new IOSNotificationDetails();
-        var platform = new NotificationDetails(android, iOS);
-
-        await flutterLocalNotificationsPlugin.show(
-            0,
-            'New Video is out',
-            'Flutter Local Notification',
-             platform,
-            payload: 'Nitish Kumar Singh is part time Youtuber');
+//        var android = new AndroidNotificationDetails('channel id', 'channel NAME', 'CHANNEL DESCRIPTION',
+//            priority: Priority.High,importance: Importance.Max
+//        );
+//        var iOS = new IOSNotificationDetails();
+//        var platform = new NotificationDetails(android, iOS);
+//
+//        await flutterLocalNotificationsPlugin.show(
+//            0,
+//            'New Video is out',
+//            'Flutter Local Notification',
+//             platform,
+//            payload: '$message');
         print('Notification on active screen');
         print('on message $message');
       },
@@ -113,11 +153,11 @@ class ChatConversation extends StatefulWidget {
 
   // create state
   @override
-  chatConversation createState() => chatConversation();
+  _ChatConversation createState() => _ChatConversation();
 }
 
 // extend class with state
-class chatConversation extends State<ChatConversation> {
+class _ChatConversation extends State<ChatConversation> {
   String senderId;
   String receiverId;
 
@@ -127,10 +167,10 @@ class chatConversation extends State<ChatConversation> {
     senderId = prefs.getString('_userId');
     receiverId = prefs.getString('receiver_id');
 
-    print('sender id: ${senderId}');
-    print('receiver id: ${receiverId}');
+    print('sender id: $senderId');
+    print('receiver id: $receiverId');
 
-    final response = await http.get('http://zlayit.net/chats?sender_id=${senderId}&receiver_id=${receiverId}');
+    final response = await http.get('http://zlayit.net/chats?sender_id=$senderId&receiver_id=$receiverId');
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response, then parse the JSON.
       List collections = json.decode(response.body)['data'];
