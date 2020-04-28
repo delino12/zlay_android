@@ -4,8 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:chewie/chewie.dart';
 import 'package:Zlay/widgets/loader.dart';
+import 'package:Zlay/models/user.dart';
+import 'package:Zlay/widgets/ProfileMenu.dart';
 
 class Post {
   final String title;
@@ -42,65 +43,62 @@ class Post {
   }
 }
 
-class VideoPlayer extends StatefulWidget {
+class PreviewVideoPlayer extends StatefulWidget {
   final String url;
-  VideoPlayer({Key key, this.url}) : super(key: key);
+  PreviewVideoPlayer({Key key, this.url}) : super(key: key);
 
   @override
-  _MediaPlayer createState() => _MediaPlayer();
+  _PreviewVideoPlayer createState() => _PreviewVideoPlayer();
 }
+class _PreviewVideoPlayer extends State<PreviewVideoPlayer>{
+  String videoUrl;
+  VideoPlayerController _controller;
+  Future<void> _initializeVideoPlayerFuture;
 
-class _MediaPlayer extends State<VideoPlayer>{
-  VideoPlayerController videoPlayerController;
-  ChewieController chewieController;
   @override
   void initState() {
     super.initState();
-    videoPlayerController = VideoPlayerController.network(this.widget.url)..initialize();
-    chewieController = ChewieController(
-      videoPlayerController: videoPlayerController,
-      aspectRatio: 3 / 2,
-      autoPlay: false,
-      looping: false,
-      showControls: false,
-      materialProgressColors: ChewieProgressColors(
-        playedColor: Colors.blueAccent,
-        handleColor: Colors.blue,
-        backgroundColor: Colors.grey,
-        bufferedColor: Colors.lightGreen,
-      ),
-      placeholder: Container(
-        color: Colors.grey,
-      ),
-      autoInitialize: false,
-    );
+    videoUrl = this.widget.url;
+    _controller = VideoPlayerController.network(videoUrl.toString());
+    _initializeVideoPlayerFuture = _controller.initialize();
   }
+
   @override
   void dispose() {
-    videoPlayerController.dispose();
-    chewieController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return  SizedBox(
-        child: Chewie(
-          controller: chewieController
-        ),
+    return FutureBuilder(
+      future: _initializeVideoPlayerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // If the VideoPlayerController has finished initialization, use
+          // the data it provides to limit the aspect ratio of the VideoPlayer.
+          return AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            // Use the VideoPlayer widget to display the video.
+            child: VideoPlayer(_controller),
+          );
+        } else {
+          // If the VideoPlayerController is still initializing, show a
+          // loading spinner.
+          return Center(child: ShowLoader());
+        }
+      },
     );
   }
 }
 
 class ImageSlider extends StatefulWidget {
   final List media;
-
   ImageSlider({Key key, this.media}) : super(key: key);
 
-  _imageSliderBuilder createState() => _imageSliderBuilder();
+  _ImageSlider createState() => _ImageSlider();
 }
-
-class _imageSliderBuilder extends State<ImageSlider>{
+class _ImageSlider extends State<ImageSlider>{
   int _current = 0;
 
   List<T> map<T>(List list, Function handler) {
@@ -187,15 +185,14 @@ class _imageSliderBuilder extends State<ImageSlider>{
   }
 }
 
-
 class PostTimelineStories extends StatefulWidget {
   @override
   _PostTimelineStories createState() => _PostTimelineStories();
 }
-
 class _PostTimelineStories extends State<PostTimelineStories> {
-  var data;
+  var timelinePosts;
   var refreshKey = GlobalKey<RefreshIndicatorState>();
+  var mediaType;
 
   @override
   void initState() {
@@ -203,34 +200,12 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     refreshList();
   }
 
-  Future<Null> refreshList() async {
+  Future<void> refreshList() async {
     refreshKey.currentState?.show(atTop: false);
     await Future.delayed(Duration(seconds: 2));
-    data = await __fetchPosts();
-    __postListView(data);
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Post>>(
-      future: __fetchPosts(),
-      builder: (context, snapshot){
-        if(snapshot.hasData){
-          data = snapshot.data;
-          return RefreshIndicator(
-            key: refreshKey,
-            onRefresh: refreshList,
-            child: __postListView(data),
-          );
-        } else if(snapshot.hasError) {
-          return Text("${snapshot.error}");
-        }
-        return Center(
-          child: ShowLoader(),
-        );
-      }
-    );
+    setState(() {
+      timelinePosts = __fetchPosts();
+    });
   }
 
   Future<List<Post>> __fetchPosts() async {
@@ -245,24 +220,20 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     }
   }
 
-  ListView __postListView(data){
+  Widget timelineListView(data){
     return ListView.builder(
       itemCount: data?.length,
       itemBuilder: (context, index){
         if(data[index].mediaType == 1){
-          return _timelineImagesPostBuilder(data[index]);
+          return postWithImages(data[index]);
         }else{
-          return _timelineVideosPostBuilder(data[index]);
+          return postWithVideos(data[index]);
         }
       },
     );
   }
 
-  Widget _videoPlayerWidget (post) => Container(
-    child: VideoPlayer(url: post.postMediaAvatar),
-  );
-
-  Widget _timelineImagesPostBuilder (dynamic post) => Container(
+  Widget postWithImages (dynamic post) => Container(
     margin: EdgeInsets.fromLTRB(0,0,0,15),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,13 +298,6 @@ class _PostTimelineStories extends State<PostTimelineStories> {
                     ],
                   ),
                 ),
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.tight,
-                  child: Container(
-                    margin: EdgeInsets.fromLTRB(5, 10, 0, 0),
-                  ),
-                ),
                 Container(
                   padding: EdgeInsets.all(5),
                   child: Row(
@@ -358,7 +322,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     ),
   );
 
-  Widget _timelineVideosPostBuilder (dynamic post) => Container(
+  Widget postWithVideos (dynamic post) => Container(
     margin: EdgeInsets.fromLTRB(0,0,0,15),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,7 +365,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
             ],
           ),
         ),
-        _videoPlayerWidget(post),
+        PreviewVideoPlayer(url: post.postMediaAvatar),
         Container(
             child: Row(
               children: <Widget>[
@@ -453,4 +417,26 @@ class _PostTimelineStories extends State<PostTimelineStories> {
       ],
     ),
   );
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Post>>(
+        future: __fetchPosts(),
+        builder: (context, snapshot){
+          if(snapshot.hasData){
+            timelinePosts = snapshot.data;
+            return RefreshIndicator(
+              key: refreshKey,
+              onRefresh: refreshList,
+              child:  timelineListView(timelinePosts),
+            );
+          } else if(snapshot.hasError) {
+            return Text("${snapshot.error}");
+          }
+          return Center(
+            child: ShowLoader(),
+          );
+        }
+    );
+  }
 }

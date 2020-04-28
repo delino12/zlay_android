@@ -1,33 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:Zlay/models/post.dart';
-import 'package:Zlay/models/user.dart';
 import 'package:Zlay/widgets/iconMenu.dart';
-import 'package:Zlay/widgets/ProfileMenu.dart';
 
-class Timeline extends StatelessWidget {
+
+class Timeline extends StatefulWidget {
+  @override
+  _Timeline createState() => _Timeline();
+}
+
+class _Timeline extends State<Timeline> {
 
   @override
   Widget build(BuildContext context) {
-    return new Container(
-      child: Column(
-        children: <Widget>[
-          IconMenuBar(),
-          ProfileMenuBar(),
-          SizedBox(
-            height: 70,
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: UserList(),
-                )
-              ],
-            ),
-          ),
-          Expanded(
-            child: PostTimelineStories(),
-          ),
-        ],
-      ),
+    return Column(
+      children: <Widget>[
+        IconMenuBar(),
+        Expanded(
+          child: PostTimelineStories(),
+        )
+      ],
     );
   }
 }

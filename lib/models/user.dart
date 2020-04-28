@@ -111,11 +111,20 @@ class _UserList extends State<UserList>{
             width: 62,
             margin: EdgeInsets.all(2),
             decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(user['avatar']),
-                )
+              shape: BoxShape.circle,
+              gradient: LinearGradient(colors: [Colors.white, Colors.white]),
+            ),
+            child: Container(
+              height: 64,
+              width: 64,
+              margin: EdgeInsets.all(2),
+              decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: NetworkImage(user['avatar']),
+                  )
+              ),
             ),
           ),
         )

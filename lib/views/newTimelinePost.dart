@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:Zlay/widgets/toast.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_absolute_path/flutter_absolute_path.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:progress_indicators/progress_indicators.dart';
 import 'package:Zlay/widgets/loader.dart';
-import 'package:chewie/chewie.dart';
-import 'package:video_player/video_player.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_uploader/flutter_uploader.dart';
+import 'package:path/path.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:Zlay/widgets/indexWidget.dart';
 
 class ImageSlider extends StatefulWidget {
   final List<Asset> media;
@@ -26,7 +23,6 @@ class ImageSlider extends StatefulWidget {
   @override
   _ImageSlider createState() => _ImageSlider();
 }
-
 class _ImageSlider extends State<ImageSlider>{
   int _current = 0;
 
@@ -91,22 +87,12 @@ class _ImageSlider extends State<ImageSlider>{
                 builder: (BuildContext context) {
                   return Container(
                     width: double.infinity,
-//                    decoration: BoxDecoration(
-//                        image: new DecorationImage(
-//                          fit: BoxFit.cover,
-//                          image: new AssetImage(asset.toString()),
-//                        )
-//                    ),
-//                    child: Align(
-//                      alignment: FractionalOffset.bottomCenter,
-//                      child: _buildIndicator(mediaList),
-//                    )
-                  child: AssetThumb(
-                    asset: asset,
-                    width: asset.originalWidth,
-                    height: asset.originalHeight,
-                    quality: 100
-                  ),
+                    child: AssetThumb(
+                      asset: asset,
+                      width: asset.originalWidth,
+                      height: asset.originalHeight,
+                      quality: 100
+                    ),
                  );
                 },
               );
@@ -125,7 +111,6 @@ class VideoSlider extends StatefulWidget {
 
   _VideoSlider createState() => _VideoSlider();
 }
-
 class _VideoSlider extends State<VideoSlider>{
   int _current = 0;
 
@@ -168,7 +153,6 @@ class _VideoSlider extends State<VideoSlider>{
   @override
   Widget build(BuildContext context) {
     List mediaList = this.widget.media;
-
     return Container(
       child: Column(
         children: <Widget>[
@@ -179,88 +163,81 @@ class _VideoSlider extends State<VideoSlider>{
             viewportFraction: 1.0,
             aspectRatio: 2.0,
             autoPlay: false,
-            enlargeCenterPage: false,
+            enlargeCenterPage: true,
             onPageChanged: (index) {
               setState(() {
                 _current = index;
               });
             },
-            items: mediaList.map((i) {
-              print('Playing $i');
+            items: mediaList.map((video) {
               return Builder(
                 builder: (BuildContext context) {
-                  return Container(
-                    width: double.infinity,
-                    child: new VideoPlayer(url: i.toString()),
-                  );
+                  return PreviewVideoPlayer(url: video.toString());
                 },
               );
             }).toList(),
           ),
-          SizedBox(
-            height: 25,
-            child: new Align(
-              alignment: FractionalOffset.bottomCenter,
-              child: _buildIndicator(mediaList),
-            ),
-          )
+//          SizedBox(
+//            height: 25,
+//            child: new Align(
+//              alignment: FractionalOffset.bottomCenter,
+//              child: _buildIndicator(mediaList),
+//            ),
+//          )
         ],
       ),
     );
   }
 }
 
-class VideoPlayer extends StatefulWidget {
+class PreviewVideoPlayer extends StatefulWidget {
   final String url;
-  VideoPlayer({Key key, this.url}) : super(key: key);
+  PreviewVideoPlayer({Key key, this.url}) : super(key: key);
 
   @override
-  _VideoPlayer createState() => _VideoPlayer();
+  _PreviewVideoPlayer createState() => _PreviewVideoPlayer();
 }
+class _PreviewVideoPlayer extends State<PreviewVideoPlayer>{
+  String videoUrl;
+  VideoPlayerController _controller;
+  Future<void> _initializeVideoPlayerFuture;
 
-class _VideoPlayer extends State<VideoPlayer>{
-  VideoPlayerController videoPlayerController;
-  ChewieController chewieController;
   @override
   void initState() {
     super.initState();
-    videoPlayerController = VideoPlayerController.network(this.widget.url)..initialize();
-    chewieController = ChewieController(
-      videoPlayerController: videoPlayerController,
-      aspectRatio: 3 / 2,
-      autoPlay: false,
-      looping: false,
-      showControls: true,
-      materialProgressColors: ChewieProgressColors(
-        playedColor: Colors.blueAccent,
-        handleColor: Colors.blue,
-        backgroundColor: Colors.grey,
-        bufferedColor: Colors.lightGreen,
-      ),
-      placeholder: Container(
-        color: Colors.grey,
-      ),
-      autoInitialize: false,
-    );
+    videoUrl = this.widget.url;
+    _controller = VideoPlayerController.network(videoUrl.toString());
+    _initializeVideoPlayerFuture = _controller.initialize();
   }
 
   @override
   void dispose() {
-    videoPlayerController.dispose();
-    chewieController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return  SizedBox(
-      child: Chewie(
-          controller: chewieController
-      ),
+    return FutureBuilder(
+      future: _initializeVideoPlayerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          // If the VideoPlayerController has finished initialization, use
+          // the data it provides to limit the aspect ratio of the VideoPlayer.
+          return AspectRatio(
+            aspectRatio: _controller.value.aspectRatio,
+            // Use the VideoPlayer widget to display the video.
+            child: VideoPlayer(_controller),
+          );
+        } else {
+          // If the VideoPlayerController is still initializing, show a
+          // loading spinner.
+          return Center(child: ShowLoader());
+        }
+      },
     );
   }
 }
-
 
 class NewTimelinePost extends StatefulWidget {
   final int mediaType;
@@ -269,20 +246,48 @@ class NewTimelinePost extends StatefulWidget {
   @override
   _NewTimelinePost createState() => _NewTimelinePost();
 }
-
 class _NewTimelinePost extends State<NewTimelinePost> {
-//  final uploader = FlutterUploader();
+  final uploader = FlutterUploader();
   var _mediaType;
   var _timelineTextInput = TextEditingController();
   var showLoader = false;
   var isImage;
 
-  List<File> filesBox = [];
+  List<String> filesBox = [];
   List<Asset> images = List<Asset>();
   List<File> videos = List<File>();
   String _error = 'No Error Dectected';
 
-  Future<void> loadAssets() async {
+  // init state
+  @override
+  void initState(){
+    super.initState();
+
+    setState(() {
+      _mediaType = this.widget.mediaType;
+
+      // show selected image
+      if(this.widget.mediaType == 1){
+        isImage = true;
+        loadImagesAssets();
+      }
+
+      if(this.widget.mediaType == 2){
+        isImage = false;
+        loadVideosAssets();
+      }
+    });
+  }
+
+  // dispose after use
+  @override
+  void dispose() {
+    // clean up the controller when the widget is disposed.
+    _timelineTextInput.dispose();
+    super.dispose();
+  }
+
+  Future<void> loadImagesAssets() async {
     List<Asset> resultList = List<Asset>();
     String error = 'No Error Dectected';
 
@@ -316,39 +321,52 @@ class _NewTimelinePost extends State<NewTimelinePost> {
     });
   }
 
-  Future<void> loadVideoAsset() async {
+  Future<void> loadVideosAssets() async {
+    List<Asset> resultList = List<Asset>();
     String error = 'No Error Dectected';
-    List<File> files;
+
     try {
-      files = await FilePicker.getMultiFile(
-          type: FileType.custom,
-          allowedExtensions: ['mp4', 'avi']
-      );
+      File video = await ImagePicker.pickVideo(source: ImageSource.gallery);
+      setState(() {
+        videos.add(video);
+        getVideoFilePathToList(video);
+      });
     } on Exception catch (e) {
       error = e.toString();
-      Navigator.pop(context);
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => IndexWidget(title: 'Timeline')), (route) => false);
     }
 
-    if(!mounted) Navigator.pop(context);
+    if (!mounted) Navigator.pop(context);
 
     setState(() {
-      videos = files;
-      getVideoFilePathToList(videos);
+      images = resultList;
+      _error = error;
+
+      // prepare list
+      getFilePathToList(images);
     });
   }
 
   Future<void> getFilePathToList(images) async {
     for (Asset asset in images) {
       var filePath = await FlutterAbsolutePath.getAbsolutePath(asset.identifier);
-      var fileProper = await getImageFileFromAsset(filePath);
-      filesBox.add(fileProper);
+      ImageProperties properties = await FlutterNativeImage.getImageProperties(filePath);
+      File compressedFile = await FlutterNativeImage.compressImage(filePath, quality: 80,
+          targetWidth: 800,
+          targetHeight: (properties.height * 800 / properties.width).round());
+
+      print('Compressed file');
+      print(compressedFile.path.toString());
+      filesBox.add(compressedFile.path.toString());
     }
   }
 
   Future<void> getVideoFilePathToList(videos) async {
-    for (File asset in videos) {
-      filesBox.add(asset);
-    }
+    print(videos.path);
+    filesBox.add(videos.path.toString());
+    //    for (File asset in videos) {
+    //      filesBox.add(asset.toString());
+    //    }
   }
 
   Future<File> getImageFileFromAsset(String path) async {
@@ -360,36 +378,42 @@ class _NewTimelinePost extends State<NewTimelinePost> {
 
   // Upload Timeline post
   uploadTimelinePost(String text) async {
+    var prefs = await SharedPreferences.getInstance();
+    var userId = prefs.getString('_userId');
+    var isMultiple;
 
-  }
+    List<FileItem> filesToUpload = [];
 
-  // init state
-  @override
-  void initState(){
-    super.initState();
+    for(String eachFile in filesBox){
+      final String filename = basename(eachFile.toString());
+      final String savedDir = dirname(eachFile.toString());
+      filesToUpload.add(FileItem(filename: filename, savedDir: savedDir, fieldname: "media_files"));
+    }
 
-    setState(() {
-      _mediaType = this.widget.mediaType;
+    var numbersOfFiles = filesToUpload.length;
+    print('Total files to upload');
+    print(numbersOfFiles);
 
-      // show selected image
-      if(this.widget.mediaType == 1){
-        isImage = true;
-        loadAssets();
-      }
+    await uploader.enqueue(
+        url: "http://zlayit.net/timeline/post", //required: url to upload to
+        files: filesToUpload, // required: list of files that you want to upload
+        method: UploadMethod.POST, // HTTP method  (POST or PUT or PATCH)
+        data: {
+          "post_text": text,
+          "user_id": userId,
+          "media_type": "$_mediaType",
+          "numbers_of_files": "$numbersOfFiles"
+        }, // any data you want to send in upload request
+        showNotification: true, // send local notification (android only) for upload status
+        tag: "upload 1"
+    );
 
-      if(this.widget.mediaType == 2){
-        isImage = false;
-        loadVideoAsset();
-      }
+    // listen for upload progress.
+    uploader.result.listen((result) {
+      print(result);
+    }, onError: (ex, stacktrace) {
+      print(ex);
     });
-  }
-
-  // dispose after use
-  @override
-  void dispose() {
-    // clean up the controller when the widget is disposed.
-    _timelineTextInput.dispose();
-    super.dispose();
   }
 
   // upload share widget
@@ -400,16 +424,10 @@ class _NewTimelinePost extends State<NewTimelinePost> {
         child: Icon(Icons.share, color: Colors.grey[700]),
       ),
       onTap: () async {
-        // share your timeline
         print('sharing timeline posts');
-        var timelineResponse = await uploadTimelinePost(_timelineTextInput.text);
-        if(timelineResponse['status'] == "success"){
-          ToastMessage('success', timelineResponse['message']);
-          // goto index widgets
-          Navigator.pop(context);
-        }else if(timelineResponse['status'] == "error"){
-          ToastMessage('error', timelineResponse['message']);
-        }
+        await uploadTimelinePost(_timelineTextInput.text);
+        ToastMessage('success', 'Post sent to timeline');
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => IndexWidget(title: 'Timeline')), (route) => false);
       },
     );
   }

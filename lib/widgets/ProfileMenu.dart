@@ -5,30 +5,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileMenuBar extends StatefulWidget {
   @override
-  _profileMenuState createState() => _profileMenuState();
+  _ProfileMenuBar createState() => _ProfileMenuBar();
 }
 
-class _profileMenuState extends State<ProfileMenuBar>{
+class _ProfileMenuBar extends State<ProfileMenuBar>{
 
-  String _email = '';
-  String _username = '';
-  String _names = '';
-  String _avatar = 'assets/images/profile.jpg';
+  String email = '';
+  String username = '';
+  String names = '';
+  String avatar = 'https://res.cloudinary.com/zlayit/image/upload/v1587824183/avatar/profile-user_wr2vgi.png';
 
-  Future<String> _getLoginDetails() async {
+  Future<void> getLoginDetails() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      this._names = prefs.getString('_names') ?? '';
-      this._email = prefs.getString('_email') ?? '';
-      this._avatar = prefs.getString('_avatar') ?? '';
-      this._username = prefs.getString('_username') ?? '';
+      names = prefs.getString('_names');
+      email = prefs.getString('_email');
+      avatar = prefs.getString('_avatar');
+      username = prefs.getString('_username');
     });
   }
 
   @override
   void initState(){
     super.initState();
-    _getLoginDetails();
+    getLoginDetails();
   }
 
   @override
@@ -48,7 +48,7 @@ class _profileMenuState extends State<ProfileMenuBar>{
                   shape: BoxShape.circle,
                   image: new DecorationImage(
                     fit: BoxFit.fill,
-                    image: new NetworkImage(_avatar),
+                    image: new NetworkImage(avatar),
                   )
               ),
             ),
@@ -64,7 +64,7 @@ class _profileMenuState extends State<ProfileMenuBar>{
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(_names,
+                    Text(names,
                         style: TextStyle(fontWeight: FontWeight.w500,
                             fontSize: 16)
                     ),
@@ -80,7 +80,6 @@ class _profileMenuState extends State<ProfileMenuBar>{
             child: GestureDetector(
               child: Icon(Icons.settings),
               onTap: (){
-//                      print('heading to the next page');
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SettingScreen()),
@@ -96,30 +95,30 @@ class _profileMenuState extends State<ProfileMenuBar>{
 
 class ProfileMenuBarNoOption extends StatefulWidget {
   @override
-  _profileMenuStateNoOption createState() => _profileMenuStateNoOption();
+  _ProfileMenuBarNoOption createState() => _ProfileMenuBarNoOption();
 }
 
-class _profileMenuStateNoOption extends State<ProfileMenuBarNoOption>{
+class _ProfileMenuBarNoOption extends State<ProfileMenuBarNoOption>{
 
-  String _email = '';
-  String _username = '';
-  String _names = '';
-  String _avatar = 'assets/images/profile.jpg';
+  String email = '';
+  String username = '';
+  String names = '';
+  String avatar = 'https://res.cloudinary.com/zlayit/image/upload/v1587824183/avatar/profile-user_wr2vgi.png';
 
-  Future<String> _getLoginDetails() async {
+  Future<void> getLoginDetails() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      this._names = prefs.getString('_names') ?? '';
-      this._email = prefs.getString('_email') ?? '';
-      this._avatar = prefs.getString('_avatar') ?? '';
-      this._username = prefs.getString('_username') ?? '';
+      names = prefs.getString('_names');
+      email = prefs.getString('_email');
+      avatar = prefs.getString('_avatar');
+      username = prefs.getString('_username');
     });
   }
 
   @override
   void initState(){
     super.initState();
-    _getLoginDetails();
+    getLoginDetails();
   }
 
   @override
@@ -138,7 +137,7 @@ class _profileMenuStateNoOption extends State<ProfileMenuBarNoOption>{
                 shape: BoxShape.circle,
                 image: new DecorationImage(
                   fit: BoxFit.fill,
-                  image: new NetworkImage(_avatar),
+                  image: new NetworkImage(avatar),
                 )
             ),
           ),
@@ -150,7 +149,7 @@ class _profileMenuStateNoOption extends State<ProfileMenuBarNoOption>{
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(_names,
+                    Text(names,
                         style: TextStyle(fontWeight: FontWeight.w500,
                             fontSize: 16)
                     ),

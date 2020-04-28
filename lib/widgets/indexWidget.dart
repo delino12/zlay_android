@@ -12,11 +12,11 @@ class IndexWidget extends StatefulWidget{
   IndexWidget({Key key, this.title}) : super(key: key);
 
   @override
-  _indexWidget createState() => _indexWidget();
+  _IndexWidget createState() => _IndexWidget();
 }
 
 // register user widgets
-class _indexWidget extends State<IndexWidget> {
+class _IndexWidget extends State<IndexWidget> {
   int _selectedIndex = 0;
   bool isLogin = false;
 
@@ -60,7 +60,7 @@ class _indexWidget extends State<IndexWidget> {
   Widget _profileOption({int index, IconData iconData, Function onPressed}) {
     return UnicornButton(
         currentButton: FloatingActionButton(
-          heroTag: '${index}',
+          heroTag: '$index',
           backgroundColor: Colors.blueAccent[500],
           mini: true,
           child: Icon(iconData),
