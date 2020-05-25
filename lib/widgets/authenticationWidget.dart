@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:Zlay/widgets/loader.dart';
 import 'package:Zlay/widgets/modals.dart';
 import 'package:Zlay/widgets/toast.dart';
+import 'package:Zlay/repository/services.dart';
 
 // Load all login widgets
 class LoginWidget extends StatefulWidget{
@@ -153,7 +154,7 @@ class _loginOptionWidget extends State<LoginWidget> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SignupWidget()),
+                  MaterialPageRoute(builder: (context) => SignUpWidget()),
                 );
               },
             ),
@@ -263,22 +264,55 @@ class _loginOptionWidget extends State<LoginWidget> {
 }
 
 // Signup Widget on state
-class SignupWidget extends StatefulWidget{
+class SignUpWidget extends StatefulWidget{
   final String title;
-  SignupWidget({Key key, this.title}) : super(key: key);
+  SignUpWidget({Key key, this.title}) : super(key: key);
 
   @override
-  _signupStateWidget createState() => _signupStateWidget();
+  _SignUpWidget createState() => _SignUpWidget();
 }
-
-// register user widgets
-class _signupStateWidget extends State<SignupWidget> {
+class _SignUpWidget extends State<SignUpWidget> {
   bool _value1 = false;
   bool _value2 = false;
+  int _gender;
+
+  final nameController = TextEditingController();
+  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final phoneController = TextEditingController();
+
+  @override
+  void initState(){
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    nameController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
 
   //we omitted the brackets '{}' and are using fat arrow '=>' instead, this is dart syntax
-  void _value1Changed(bool value) => setState(() => _value1 = value);
-  void _value2Changed(bool value) => setState(() => _value2 = value);
+  void _value1Changed(bool value){
+    setState(() {
+      _value1 = true;
+      _value2 = false;
+      _gender = 1;
+    });
+  }
+  void _value2Changed(bool value){
+    setState(() {
+      _value1 = false;
+      _value2 = true;
+      _gender = 2;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -314,6 +348,7 @@ class _signupStateWidget extends State<SignupWidget> {
                     child: Column(
                       children: <Widget>[
                         TextField(
+                          controller: nameController,
                           decoration: new InputDecoration(
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -335,6 +370,7 @@ class _signupStateWidget extends State<SignupWidget> {
                     child: Column(
                       children: <Widget>[
                         TextField(
+                          controller: usernameController,
                           decoration: new InputDecoration(
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -356,6 +392,7 @@ class _signupStateWidget extends State<SignupWidget> {
                     child: Column(
                       children: <Widget>[
                         TextField(
+                          controller: emailController,
                           decoration: new InputDecoration(
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -377,6 +414,8 @@ class _signupStateWidget extends State<SignupWidget> {
                     child: Column(
                       children: <Widget>[
                         TextField(
+                          controller: passwordController,
+                          obscureText: true,
                           decoration: new InputDecoration(
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -399,6 +438,7 @@ class _signupStateWidget extends State<SignupWidget> {
                     child: Column(
                       children: <Widget>[
                         TextField(
+                          controller: phoneController,
                           decoration: new InputDecoration(
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
@@ -451,8 +491,24 @@ class _signupStateWidget extends State<SignupWidget> {
                             child: Text('REGISTER'),
                             color: Colors.blueAccent,
                             textColor: Colors.white,
-                            onPressed: () {
+                            onPressed: () async {
+                              var name = nameController.text;
+                              var username = usernameController.text;
+                              var email = emailController.text;
+                              var password = passwordController.text;
+                              var phone = phoneController.text;
+                              var gender = _gender;
 
+                              var response = await registerUserAccount(name, username, email, password, "$phone", "$gender");
+                              print(response);
+                              if(response['status'] == "success"){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => LoginWidget()),
+                                );
+                              }
+
+                              ToastMessage(response['status'], response['message']);
                             },
                           ),
                         ),

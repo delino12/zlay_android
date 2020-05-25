@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:Zlay/widgets/loader.dart';
@@ -71,7 +72,7 @@ class _UserList extends State<UserList>{
     super.initState();
   }
 
-  Future __loadUsersList() async {
+  Future<void> loadUsersList() async {
     final response = await http.get('http://zlayit.net/user');
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response, then parse the JSON.
@@ -83,24 +84,23 @@ class _UserList extends State<UserList>{
     }
   }
 
-  ListView __loadUsersView (users) {
+  Widget loadUsersView (users) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      shrinkWrap: false,
+//      shrinkWrap: true,
       itemCount: users.length,
       itemBuilder: (context, index){
-        return __buildUsersList(users[index]);
+        return buildUsersList(users[index]);
       },
     );
   }
 
-  Widget __buildUsersList(user){
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget buildUsersList(user){
+    return Column(
       children: <Widget>[
         Container(
-          height: 61,
-          width: 61,
+          width: 50,
+          height: 50,
           margin: EdgeInsets.all(2),
           decoration: new BoxDecoration(
             shape: BoxShape.circle,
@@ -135,11 +135,11 @@ class _UserList extends State<UserList>{
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: __loadUsersList(),
+        future: loadUsersList(),
         builder: (context, snapshot){
           if(snapshot.hasData){
             List users = snapshot.data;
-            return  __loadUsersView(users);
+            return  loadUsersView(users);
           } else if(snapshot.hasError) {
             return Text("${snapshot.error}");
           }

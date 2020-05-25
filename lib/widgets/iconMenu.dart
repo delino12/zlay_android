@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:Zlay/views/zlayLiveTv.dart';
+import 'package:Zlay/views/search.dart';
 class IconMenuBar extends StatelessWidget{
   
   @override
@@ -29,24 +30,22 @@ class IconMenuBar extends StatelessWidget{
             child: GestureDetector(
               child: Icon(Icons.search),
               onTap: (){
-//                      print('heading to the next page');
-//                Navigator.push(
-//                  context,
-//                  MaterialPageRoute(builder: (context) => SettingScreen()),
-//                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchTimeline()),
+                );
               },
             ),
           ),
           Container(
             margin: EdgeInsets.all(9),
             child: GestureDetector(
-              child: Icon(Icons.account_balance),
+              child: Icon(Icons.airplay),
               onTap: (){
-//                      print('heading to the next page');
-//                Navigator.push(
-//                  context,
-//                  MaterialPageRoute(builder: (context) => SettingScreen()),
-//                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ZlayLiveTV()),
+                );
               },
             ),
           ),

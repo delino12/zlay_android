@@ -28,9 +28,9 @@ class _IndexWidget extends State<IndexWidget> {
   // list of tab bar screen
   static List<Widget> _widgetOptions = <Widget>[
     new Timeline(),
-    new MessageScreen(),
-    new FavoriteScreen(),
     new NotificationScreen(),
+    new FavoriteScreen(),
+    new MessageScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -71,8 +71,7 @@ class _IndexWidget extends State<IndexWidget> {
 
   // active screen
   Widget _activeScreen(){
-    return Container(
-      color: Colors.white70,
+    return SizedBox(
       child: _widgetOptions.elementAt(_selectedIndex),
     );
   }
@@ -86,22 +85,22 @@ class _IndexWidget extends State<IndexWidget> {
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
           icon: Icon(Icons.home),
-          title: Text(''),
-        ),
-        BottomNavigationBarItem(
-          backgroundColor: Colors.white,
-          icon: Icon(Icons.mail_outline),
-          title: Text(''),
-        ),
-        BottomNavigationBarItem(
-          backgroundColor: Colors.white,
-          icon: Icon(Icons.favorite_border),
-          title: Text(''),
+          title: Text('Timeline', style: TextStyle(fontSize: 12),),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
           icon: Icon(Icons.notifications_none),
-          title: Text(''),
+          title: Text('Notifications', style: TextStyle(fontSize: 12),),
+        ),
+        BottomNavigationBarItem(
+          backgroundColor: Colors.white,
+          icon: Icon(Icons.favorite_border),
+          title: Text('Favorite', style: TextStyle(fontSize: 12),),
+        ),
+        BottomNavigationBarItem(
+          backgroundColor: Colors.white,
+          icon: Icon(Icons.mail_outline),
+          title: Text('Inbox', style: TextStyle(fontSize: 12),),
         ),
       ],
       currentIndex: _selectedIndex,

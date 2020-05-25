@@ -48,14 +48,112 @@ Future displayLocalNotification(payload) async {
   var initSetttings = new InitializationSettings(android, iOS);
 }
 
+Future registerUserAccount(String name, String username, String email, String password, String phone, String gender) async {
+  final http.Response response = await http.post('http://zlayit.net/user',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'names': name,
+      'username': username,
+      'email': email,
+      'password': password,
+      'phone': phone,
+      'gender': gender
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User registration failed!');
+  }
+}
+
+Future likeTimelinePost(userId, postId, reaction) async {
+  final http.Response response = await http.post('http://zlayit.net/likes',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'post_id': postId,
+      'reaction': reaction,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User registration failed!');
+  }
+}
+
+Future notifyLikeOnTimelinePost(userId, postId) async {
+  final http.Response response = await http.post('http://zlayit.net/likes',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'post_id': postId
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User registration failed!');
+  }
+}
+
+Future fetchAllRecent() async {
+  final http.Response response = await http.get('http://zlayit.net/timeline/all-recent',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    }
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error fetching recent timeline posts!');
+  }
+}
+
+Future<void> fetchZlayTvPost() async {
+  final http.Response response = await http.get('http://zlayit.net/posts',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      }
+  );
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body)['posts'];
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error fetching zlay tv timeline posts!');
+  }
+}
 
 class DisplayNotification extends StatefulWidget {
 
   @override
-  _displayNotificationState createState() => _displayNotificationState();
+  _DisplayNotification createState() => _DisplayNotification();
 }
-
-class _displayNotificationState extends State<DisplayNotification> {
+class _DisplayNotification extends State<DisplayNotification> {
 
 
   @override
@@ -155,8 +253,6 @@ class ChatConversation extends StatefulWidget {
   @override
   _ChatConversation createState() => _ChatConversation();
 }
-
-// extend class with state
 class _ChatConversation extends State<ChatConversation> {
   String senderId;
   String receiverId;

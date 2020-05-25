@@ -7,6 +7,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:Zlay/widgets/loader.dart';
 import 'package:Zlay/models/user.dart';
 import 'package:Zlay/widgets/ProfileMenu.dart';
+import 'package:Zlay/views/replyComment.dart';
 
 class Post {
   final String title;
@@ -202,6 +203,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
   var timelinePosts;
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   var mediaType;
+  bool postLike ;
 
   @override
   void initState() {
@@ -233,10 +235,15 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     return ListView.builder(
       itemCount: data?.length,
       itemBuilder: (context, index){
-        if(data[index].mediaType == 1){
-          return postWithImages(data[index]);
+        index--;
+        if(index == -1){
+          return ProfileMenuBar();
         }else{
-          return postWithVideos(data[index]);
+          if(data[index].mediaType == 1){
+            return postWithImages(data[index]);
+          }else{
+            return postWithVideos(data[index]);
+          }
         }
       },
     );
@@ -289,23 +296,36 @@ class _PostTimelineStories extends State<PostTimelineStories> {
         Container(
             child: Row(
               children: <Widget>[
-                Container(
+                GestureDetector(
+                  child: Container(
+                      padding: EdgeInsets.all(5),
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.favorite_border, size: 24),
+                          Text(post.postLikes, style: TextStyle(fontSize: 12)),
+                        ],
+                      )
+                  ),
+                  onTap: (){
+
+                  },
+                ),
+                GestureDetector(
+                  child: Container(
                     padding: EdgeInsets.all(5),
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.favorite_border, size: 24),
-                        Text(post.postLikes, style: TextStyle(fontSize: 12)),
+                        Icon(Icons.chat_bubble_outline, size: 24),
+                        Text('', style: TextStyle(fontSize: 12)),
                       ],
-                    )
-                ),
-                Container(
-                  padding: EdgeInsets.all(5),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.chat_bubble_outline, size: 24),
-                      Text('', style: TextStyle(fontSize: 12)),
-                    ],
+                    ),
                   ),
+                  onTap: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CommentScreen()),
+                    );
+                  },
                 ),
                 Container(
                   padding: EdgeInsets.all(5),
@@ -322,6 +342,10 @@ class _PostTimelineStories extends State<PostTimelineStories> {
         Container(
           padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
           child: Text(post.title),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text('349 views', style: TextStyle(fontSize: 12)),
         ),
         Container(
           padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
@@ -387,21 +411,22 @@ class _PostTimelineStories extends State<PostTimelineStories> {
                       ],
                     )
                 ),
-                Container(
-                  padding: EdgeInsets.all(5),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.chat_bubble_outline, size: 24),
-                      Text('', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ),
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.tight,
+                GestureDetector(
                   child: Container(
-                    margin: EdgeInsets.fromLTRB(5, 10, 0, 0),
+                    padding: EdgeInsets.all(5),
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.chat_bubble_outline, size: 24),
+                        Text('', style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
                   ),
+                  onTap: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CommentScreen()),
+                    );
+                  },
                 ),
                 Container(
                   padding: EdgeInsets.all(5),
@@ -421,6 +446,10 @@ class _PostTimelineStories extends State<PostTimelineStories> {
         ),
         Container(
           padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
+          child: Text('349 views', style: TextStyle(fontSize: 12)),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
           child: Text(post.postCreatedAt, style: TextStyle(fontSize: 12)),
         ),
       ],
@@ -437,7 +466,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
             return RefreshIndicator(
               key: refreshKey,
               onRefresh: refreshList,
-              child:  timelineListView(timelinePosts),
+              child: timelineListView(timelinePosts),
             );
           } else if(snapshot.hasError) {
             return Text("${snapshot.error}");

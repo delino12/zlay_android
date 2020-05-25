@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
-class ReplyComment extends StatelessWidget {
+
+class CommentScreen extends StatefulWidget {
+
+  @override
+  _CommentScreen createState() => _CommentScreen();
+}
+class _CommentScreen extends State<CommentScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +38,7 @@ class ReplyComment extends StatelessWidget {
                         child: Row(
                           children: <Widget>[
                             Center(
-                                child: Text('Comment Replies',
+                                child: Text('Comments',
                                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
                                 )
                             ),

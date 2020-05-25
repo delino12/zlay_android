@@ -15,10 +15,10 @@ class SettingScreen extends StatefulWidget {
   SettingScreen({Key key, this.title}) : super(key: key);
 
   @override
-  _settingScreen createState() => _settingScreen();
+  _SettingScreen createState() => _SettingScreen();
 }
 
-class _settingScreen extends State<SettingScreen>{
+class _SettingScreen extends State<SettingScreen>{
 
   Future _logout() async {
       final prefs = await SharedPreferences.getInstance();
