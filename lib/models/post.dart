@@ -95,7 +95,10 @@ class _PreviewVideoPlayer extends State<PreviewVideoPlayer>{
         } else {
           // If the VideoPlayerController is still initializing, show a
           // loading spinner.
-          return Center(child: ShowLoader());
+          return Container(
+            height: 350,
+            child: Center(child: ShowLoader()),
+          );
         }
       },
     );

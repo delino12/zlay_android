@@ -76,41 +76,39 @@ class _FollowerList extends State<FollowerList> {
 
   Widget __buildFollowerList(follower){
     return Container(
-      child: Card(
-        child: ListTile(
-          leading: Container(
-            width: 45.0,
-            height: 45.0,
-            decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(follower['user']['avatar']),
-                )
-            ),
+      child: ListTile(
+        leading: Container(
+          width: 45.0,
+          height: 45.0,
+          decoration: new BoxDecoration(
+              shape: BoxShape.circle,
+              image: new DecorationImage(
+                fit: BoxFit.fill,
+                image: NetworkImage(follower['user']['avatar']),
+              )
           ),
-          title: Container(
-            child: Row(
-              children: <Widget>[
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.tight,
-                  child: Text('${follower['user']['names']}', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
-                ),
-                Container(
-//                  child: Icon(Icons.more_vert, size: 12),
-                )
-              ],
-            ),
-          ),
-          subtitle: Text('Start a conversation...', style: TextStyle(fontSize: 12)),
-          dense: true,
-          onTap: () async {
-            var prefs = await SharedPreferences.getInstance();
-            prefs.setString('receiver_id', follower['user']['_id']);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
-          },
         ),
+        title: Container(
+          child: Row(
+            children: <Widget>[
+              Flexible(
+                flex: 1,
+                fit: FlexFit.tight,
+                child: Text('${follower['user']['names']}', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
+              ),
+              Container(
+//                  child: Icon(Icons.more_vert, size: 12),
+              )
+            ],
+          ),
+        ),
+        subtitle: Text(follower['user']['username'], style: TextStyle(fontSize: 12)),
+        dense: true,
+        onTap: () async {
+          var prefs = await SharedPreferences.getInstance();
+          prefs.setString('receiver_id', follower['user']['_id']);
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
+        },
       ),
     );
   }

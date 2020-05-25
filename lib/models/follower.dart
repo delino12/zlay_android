@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:Zlay/widgets/loader.dart';
+import 'package:Zlay/views/chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Follower {
@@ -104,8 +105,10 @@ class _FollowerList extends State<FollowerList> {
           ),
           subtitle: Text('Send instant message', style: TextStyle(fontSize: 12)),
           dense: true,
-          onTap: (){
-            print('Reply Messages');
+          onTap: () async {
+            var prefs = await SharedPreferences.getInstance();
+            prefs.setString('receiver_id', follower['user']['_id']);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
           },
         ),
       ),
@@ -229,10 +232,12 @@ class _FollowingList extends State<FollowingList> {
               ],
             ),
           ),
-          subtitle: Text('Send instant message', style: TextStyle(fontSize: 12)),
+          subtitle: Text(following['user']['names'], style: TextStyle(fontSize: 12)),
           dense: true,
-          onTap: (){
-            print('Reply Messages');
+          onTap: () async {
+            var prefs = await SharedPreferences.getInstance();
+            prefs.setString('receiver_id', following['user']['_id']);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
           },
         ),
       ),

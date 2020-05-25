@@ -42,6 +42,7 @@ class _NotificationListState extends State<NotificationList>{
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response, then parse the JSON.
       List collections = json.decode(response.body)['data'];
+      print(collections);
       return collections;
     } else {
       // If the server did not return a 200 OK response, then throw an exception.
@@ -65,6 +66,7 @@ class _NotificationListState extends State<NotificationList>{
   Widget __buildNotificationList(notification){
     return Container(
       child: Container(
+        padding: EdgeInsets.all(5),
         child: ListTile(
           leading: Container(
             width: 45.0,
@@ -104,7 +106,7 @@ class _NotificationListState extends State<NotificationList>{
           subtitle: Container(
             child: Row(
               children: <Widget>[
-                Text('2 mins ago', style: TextStyle(fontSize: 12.0)),
+//                Text('2 mins ago', style: TextStyle(fontSize: 12.0)),
               ],
             ),
           ),
