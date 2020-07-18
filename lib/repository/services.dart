@@ -2,12 +2,11 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:bubble/bubble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:Zlay/widgets/loader.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 // register user device token
 Future registerDeviceToken(token) async {
@@ -48,6 +47,7 @@ Future displayLocalNotification(payload) async {
   var initSetttings = new InitializationSettings(android, iOS);
 }
 
+// register user account and device
 Future registerUserAccount(String name, String username, String email, String password, String phone, String gender) async {
   final http.Response response = await http.post('http://zlayit.net/user',
     headers: <String, String>{
@@ -73,10 +73,15 @@ Future registerUserAccount(String name, String username, String email, String pa
   }
 }
 
-Future likeTimelinePost(userId, postId, reaction) async {
+// send liked action on a post
+Future likeTimelinePost(postId, reaction) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
   final http.Response response = await http.post('http://zlayit.net/likes',
     headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
+      'Content-Type': 'application/json',
+      'user_id': userId,
+      'post_id': postId
     },
     body: jsonEncode(<String, String>{
       'user_id': userId,
@@ -87,14 +92,15 @@ Future likeTimelinePost(userId, postId, reaction) async {
 
   if (response.statusCode == 200) {
     var responseData = json.decode(response.body);
-    print(responseData);
+    notifyLikeOnTimelinePost(userId, postId);
     return responseData;
   } else if(response.statusCode != 200) {
     print(json.decode(response.body));
-    print('User registration failed!');
+    print('Error liking timeline post!');
   }
 }
 
+// notify liked action on post
 Future notifyLikeOnTimelinePost(userId, postId) async {
   final http.Response response = await http.post('http://zlayit.net/likes',
     headers: <String, String>{
@@ -116,6 +122,166 @@ Future notifyLikeOnTimelinePost(userId, postId) async {
   }
 }
 
+// fetch all comments
+Future fetchComments(String postId) async {
+  String query = '?post_id=$postId';
+  final http.Response response = await http.get('http://zlayit.net/comments$query',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      }
+  );
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body)['data'];
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error fetching comments!');
+  }
+}
+
+// post user comment
+Future postComment(postId, comment) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/comments',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'comment': comment,
+      'user_id': userId,
+      'post_id': postId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error liking timeline post!');
+  }
+}
+
+// send comment notifications
+Future sendCommentNotification(postId) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/notifications/post/comment',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'post_id': postId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error sending notification events!');
+  }
+}
+
+// replied comments
+Future fetchCommentReplies(commentId) async {
+  String query = '?comment=$commentId';
+  final http.Response response = await http.get('http://zlayit.net/replies$query',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      }
+  );
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error fetching data!');
+  }
+}
+
+// post user comment replies
+Future postCommentReply(commentId, comment) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/replies',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'comment': comment,
+      'user_id': userId,
+      'comment_id': commentId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error posting comment replies!');
+  }
+}
+
+// send comment notifications
+Future sendCommentReplyNotification(commentId) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/notifications/comment/replies',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'post_id': commentId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error sending notification events!');
+  }
+}
+
+// update user profile
+Future updateUserProfileInfo(name, username, phone) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/profile',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'name': name,
+      'username': username,
+      'phone': phone
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error posting update to profile!');
+  }
+}
+
+// fetch all recent post
 Future fetchAllRecent() async {
   final http.Response response = await http.get('http://zlayit.net/timeline/all-recent',
     headers: <String, String>{
@@ -133,6 +299,7 @@ Future fetchAllRecent() async {
   }
 }
 
+// fetch zlay timeline tv post
 Future<void> fetchZlayTvPost() async {
   final http.Response response = await http.get('http://zlayit.net/posts',
       headers: <String, String>{
@@ -145,6 +312,214 @@ Future<void> fetchZlayTvPost() async {
   } else if(response.statusCode != 200) {
     print(json.decode(response.body));
     print('Error fetching zlay tv timeline posts!');
+  }
+}
+
+// add to view counter
+Future<void> addToView(String mediaId) async {
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final http.Response response = await http.post('http://zlayit.net/views',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'user_id': userId,
+      'post_id': mediaId,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('View counter recording failed!');
+  }
+}
+
+// fetch real timeline post
+Future<void> fetchTimelinePosts() async {
+  final response = await http.get('http://zlayit.net/posts');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    var responseData = json.decode(response.body)['posts'];
+    return responseData;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load posts from API');
+  }
+}
+
+// fetch timeline post
+Future<void> fetchTimelinePostToFile() async {
+  final http.Response response = await http.get('http://zlayit.net/posts',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      }
+  );
+  if (response.statusCode == 200) {
+    await writeTimelinePost(response.body);
+    var responseDataFromLocal = await readTimelineFromFile();
+    print(responseDataFromLocal);
+    var responseData = json.decode(response.body)['posts'];
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error fetching zlay tv timeline posts!');
+  }
+}
+
+// locate directory path
+Future<String> get _localPath async {
+  final directory = await getApplicationDocumentsDirectory();
+  return directory.path;
+}
+
+// init file location
+Future<File> get _localFile async {
+  final path =  await _localPath;
+  return File('$path/posts.json');
+}
+
+// write data to file
+Future<File> writeTimelinePost(String posts) async {
+  final file = await _localFile;
+  print('timeline post written to json');
+  return file.writeAsString(posts);
+}
+
+// read post from file
+Future<String> readTimelineFromFile() async {
+  try {
+    final file = await _localFile;
+    String timelinePostContents = await file.readAsString();
+    return timelinePostContents;
+  } catch(e) {
+    return e.getMessage;
+  }
+}
+
+// write images to temp location
+Future<File> writeTimelineImageToLocal (String imageUrl) async {
+  final Directory temporary = await getTemporaryDirectory();
+  final File imageFile = File('${temporary.path}/images/$imageUrl');
+  if(await imageFile.exists()){
+    return imageFile;
+  }else{
+    await imageFile.create(recursive: true);
+    return imageFile;
+  }
+}
+
+// fetch all followers
+Future fetchFollowers() async {
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getString('_userId');
+
+  final response = await http.get('http://zlayit.net/follower?user_id=$userId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+// fetch all followings
+Future fetchFollowings() async {
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getString('_userId');
+
+  final response = await http.get('http://zlayit.net/following?user_id=$userId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+// load chat recipient user
+Future loadChatUserProfile(receiverId) async {
+  final response = await http.get('http://zlayit.net/user/$receiverId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    var collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+// fetch chat from api
+Future fetchChat(senderId, receiverId) async {
+  print('sender id: $senderId');
+  print('receiver id: $receiverId');
+
+  final response = await http.get('http://zlayit.net/chats?sender_id=$senderId&receiver_id=$receiverId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+// send chat
+Future sendChat(message, senderId, receiverId) async {
+  final http.Response response = await http.post('http://zlayit.net/chats',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'message': message
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    var chatId = responseData['data']['message']['_id'];
+    print('chat id: $chatId');
+    await sendChatMessageNotification(message, senderId, receiverId, chatId);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('View counter recording failed!');
+  }
+}
+
+// send chat message notification
+Future sendChatMessageNotification(message, senderId, receiverId, chatId) async {
+  print('sending chat notifications');
+  final http.Response response = await http.post('http://zlayit.net/notifications/notify/message',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'sender_id': senderId,
+      'receiver_id': receiverId,
+      'message': message,
+      'chat_id': chatId
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('Error sending chat notifications');
   }
 }
 
@@ -211,20 +586,8 @@ class FirebaseNotifications {
 
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
-//        var android = new AndroidNotificationDetails('channel id', 'channel NAME', 'CHANNEL DESCRIPTION',
-//            priority: Priority.High,importance: Importance.Max
-//        );
-//        var iOS = new IOSNotificationDetails();
-//        var platform = new NotificationDetails(android, iOS);
-//
-//        await flutterLocalNotificationsPlugin.show(
-//            0,
-//            'New Video is out',
-//            'Flutter Local Notification',
-//             platform,
-//            payload: '$message');
-        print('Notification on active screen');
-        print('on message $message');
+        Map notificationMessage = message;
+        print(notificationMessage);
       },
       onResume: (Map<String, dynamic> message) async {
         print('Resume screen');
@@ -243,100 +606,5 @@ class FirebaseNotifications {
     _firebaseMessaging.onIosSettingsRegistered.listen((IosNotificationSettings settings) {
       print("Settings registered: $settings");
     });
-  }
-}
-
-// init chat conversation class
-class ChatConversation extends StatefulWidget {
-
-  // create state
-  @override
-  _ChatConversation createState() => _ChatConversation();
-}
-class _ChatConversation extends State<ChatConversation> {
-  String senderId;
-  String receiverId;
-
-  // fetch chat from api
-  Future fetchChat() async {
-    final prefs = await SharedPreferences.getInstance();
-    senderId = prefs.getString('_userId');
-    receiverId = prefs.getString('receiver_id');
-
-    print('sender id: $senderId');
-    print('receiver id: $receiverId');
-
-    final response = await http.get('http://zlayit.net/chats?sender_id=$senderId&receiver_id=$receiverId');
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response, then parse the JSON.
-      List collections = json.decode(response.body)['data'];
-      return collections;
-    } else {
-      // If the server did not return a 200 OK response, then throw an exception.
-      throw Exception('Failed to load notifications from API');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  // sender chat message callout
-  Widget __senderChat (message){
-    return Bubble(
-      margin: BubbleEdges.only(top: 10),
-      alignment: Alignment.topRight,
-      nip: BubbleNip.rightTop,
-      color: Colors.blueAccent,
-      child: Text('${message['message']['body']}', textAlign: TextAlign.right, style: TextStyle(color: Colors.white)),
-    );
-  }
-
-  // reciever chat message callout
-  Widget __receiverChat (message){
-    return Bubble(
-      margin: BubbleEdges.only(top: 10),
-      alignment: Alignment.topLeft,
-      nip: BubbleNip.leftTop,
-      child: Text('${message['message']['body']}'),
-    );
-  }
-
-  ListView __chatListView (messages){
-    return ListView.builder(
-      itemCount: messages.length,
-      itemBuilder: (context, index){
-        if(messages[index]['from']['_id'] == senderId){
-          return Container(
-            margin: EdgeInsets.fromLTRB(45, 1, 8, 1),
-            child: __senderChat(messages[index]),
-          );
-        }else{
-          return Container(
-            margin: EdgeInsets.fromLTRB(8, 1, 45, 1),
-            child: __receiverChat(messages[index]),
-          );
-        }
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: fetchChat(),
-        builder: (context, snapshot){
-          if(snapshot.hasData){
-            List chatMessages = snapshot.data;
-            return __chatListView(chatMessages);
-          } else if(snapshot.hasError) {
-            return Text("${snapshot.error}");
-          }
-          return Center(
-            child: ShowLoader(),
-          );
-        }
-    );
   }
 }

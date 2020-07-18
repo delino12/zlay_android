@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:Zlay/widgets/ProfileMenu.dart';
 import 'package:Zlay/models/follower.dart';
+import 'package:Zlay/models/following.dart';
 
 // Favorite Screen
 class FavoriteScreen extends StatelessWidget {

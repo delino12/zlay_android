@@ -1,87 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:Zlay/repository/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Zlay/widgets/loader.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-Future loadChatUserProfile() async {
-  var prefs =  await SharedPreferences.getInstance();
-  final String userId = prefs.getString('receiver_id');
-  final response = await http.get('http://zlayit.net/user/${userId}');
-  if (response.statusCode == 200) {
-    // If the server did return a 200 OK response, then parse the JSON.
-    var collections = json.decode(response.body)['data'];
-    print(collections);
-    return collections;
-  } else {
-    // If the server did not return a 200 OK response, then throw an exception.
-    throw Exception('Failed to load notifications from API');
-  }
-}
+import 'package:bubble/bubble.dart';
 
 // Chat Messages Screen
 class ChatScreen extends StatefulWidget {
-  final String title;
-  ChatScreen({Key key, this.title}) : super(key: key);
+  final String receiverId;
+  final String senderId;
+  ChatScreen({Key key, this.receiverId, this.senderId}) : super(key: key);
 
   @override
-  _chatScreenState  createState() => _chatScreenState();
+  _ChatScreen  createState() => _ChatScreen();
 }
-
-class _chatScreenState extends State<ChatScreen> {
+class _ChatScreen extends State<ChatScreen> {
+  var refreshKey = GlobalKey<RefreshIndicatorState>();
+  var chatTextController = TextEditingController();
+  var chatConversations;
+  String senderId;
+  String receiverId;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
+    senderId = this.widget.senderId;
+    receiverId = this.widget.receiverId;
   }
 
-  // chat input area
-  Widget _chatInputArea(context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(
-          color: Colors.grey[100],
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(0),
-      ),
-      padding: EdgeInsets.fromLTRB(0,0,0,10),
-      child: Row(
-        children: <Widget>[
-          Container(
-            margin: EdgeInsets.all(5),
-            child: Icon(Icons.mood, color: Colors.grey[700]),
-          ),
-          Container(
-            margin: EdgeInsets.all(5),
-            child: Icon(Icons.camera_alt, color: Colors.grey[700]),
-          ),
-          Container(
-            margin: EdgeInsets.all(5),
-            child: Icon(Icons.videocam, color: Colors.grey[700]),
-          ),
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: TextField(
-              decoration: new InputDecoration(
-                  border: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: EdgeInsets.only(left: 5, bottom: 1, top: 1, right: 5),
-                  hintText: 'Type a message...'
-              ),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.fromLTRB(5,5,10,5),
-            child: Icon(Icons.send, color: Colors.grey[700]),
-          ),
-        ],
-      ),
-    );
+  Future<void> refreshChatArea() async {
+    refreshKey.currentState?.show(atTop: false);
+    await Future.delayed(Duration(seconds: 1));
+    setState(() {
+      chatConversations = fetchChat(senderId, receiverId);
+    });
+  }
+
+  void dispose(){
+    chatTextController.dispose();
+    super.dispose();
   }
 
   // chat title area
@@ -92,7 +47,7 @@ class _chatScreenState extends State<ChatScreen> {
       color: Colors.white,
       margin: EdgeInsets.all(9),
       child: FutureBuilder(
-        future: loadChatUserProfile(),
+        future: loadChatUserProfile(receiverId),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var chatUserProfile = snapshot.data;
@@ -149,7 +104,119 @@ class _chatScreenState extends State<ChatScreen> {
     return Flexible(
       fit: FlexFit.tight,
       flex: 1,
-      child: ChatConversation(),
+      child: FutureBuilder(
+          future: fetchChat(senderId, receiverId),
+          builder: (context, snapshot){
+            if(snapshot.hasData){
+              List chatConversations = snapshot.data;
+              return RefreshIndicator(
+                key: refreshKey,
+                onRefresh: refreshChatArea,
+                child: chatListView(chatConversations)
+              );
+            } else if(snapshot.hasError) {
+              return Text("${snapshot.error}");
+            }
+            return Center(
+              child: ShowLoader(),
+            );
+          }
+      ),
+    );
+  }
+
+  // chat input area
+  Widget _chatInputArea(context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[100],
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      padding: EdgeInsets.fromLTRB(0,0,0,10),
+      child: Row(
+        children: <Widget>[
+          Container(
+            margin: EdgeInsets.all(5),
+            child: Icon(Icons.mood, color: Colors.grey[700]),
+          ),
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: TextField(
+              controller: chatTextController,
+              decoration: new InputDecoration(
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.only(left: 5, bottom: 1, top: 1, right: 5),
+                  hintText: 'Type a message...'
+              ),
+            ),
+          ),
+          GestureDetector(
+            child: Container(
+              margin: EdgeInsets.fromLTRB(5,5,10,5),
+              child: Icon(Icons.send, color: Colors.grey[700]),
+            ),
+            onTap: () async {
+              var message = chatTextController.text;
+              if(message == ""){
+                // do not send
+              }else{
+                await sendChat(message, senderId, receiverId);
+                setState(() {
+                  chatConversations = fetchChat(senderId, receiverId);
+                });
+                chatTextController.text = "";
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // sender chat message call out
+  Widget senderChat(message){
+    return Bubble(
+      margin: BubbleEdges.only(top: 10),
+      alignment: Alignment.topRight,
+      nip: BubbleNip.rightTop,
+      color: Colors.blueAccent,
+      child: Text('${message['message']['body']}', textAlign: TextAlign.right, style: TextStyle(color: Colors.white)),
+    );
+  }
+
+  // receiver chat message call out
+  Widget receiverChat(message){
+    return Bubble(
+      margin: BubbleEdges.only(top: 10),
+      alignment: Alignment.topLeft,
+      nip: BubbleNip.leftTop,
+      child: Text('${message['message']['body']}'),
+    );
+  }
+
+  // chat messages positions
+  ListView chatListView(messages){
+    return ListView.builder(
+      itemCount: messages.length,
+      itemBuilder: (context, index){
+        if(messages[index]['from']['_id'] == senderId){
+          return Container(
+            margin: EdgeInsets.fromLTRB(45, 1, 8, 1),
+            child: senderChat(messages[index]),
+          );
+        }else{
+          return Container(
+            margin: EdgeInsets.fromLTRB(8, 1, 45, 1),
+            child: receiverChat(messages[index]),
+          );
+        }
+      },
     );
   }
 

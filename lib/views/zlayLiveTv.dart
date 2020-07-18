@@ -4,8 +4,6 @@ import 'package:Zlay/widgets/loader.dart';
 import 'package:video_player/video_player.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-var isMutedIndicator = false;
-
 class PreviewVideoPlayer extends StatefulWidget {
   final String url;
   PreviewVideoPlayer({Key key, this.url}) : super(key: key);

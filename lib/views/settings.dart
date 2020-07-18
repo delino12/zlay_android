@@ -17,7 +17,6 @@ class SettingScreen extends StatefulWidget {
   @override
   _SettingScreen createState() => _SettingScreen();
 }
-
 class _SettingScreen extends State<SettingScreen>{
 
   Future _logout() async {

@@ -1,14 +1,9 @@
-import 'dart:async';
-import 'package:Zlay/models/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:Zlay/widgets/loader.dart';
+import 'package:Zlay/repository/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:Zlay/widgets/loader.dart';
-import 'package:Zlay/models/user.dart';
-import 'package:Zlay/repository/services.dart';
-import 'package:Zlay/widgets/ProfileMenu.dart';
-import 'package:Zlay/views/comments.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class PreviewVideoPlayer extends StatefulWidget {
   final String url;
@@ -261,77 +256,87 @@ class _ImageSlider extends State<ImageSlider>{
   }
 }
 
-class PostTimelineStories extends StatefulWidget {
+class CommentScreen extends StatefulWidget {
+  final Map post;
+  CommentScreen({Key key, this.post}) : super(key: key);
+
   @override
-  _PostTimelineStories createState() => _PostTimelineStories();
+  _CommentScreen createState() => _CommentScreen();
 }
-class _PostTimelineStories extends State<PostTimelineStories> {
-  ScrollController _controller;
-  var timelinePosts;
-  var refreshKey = GlobalKey<RefreshIndicatorState>();
-  var mediaType;
+class _CommentScreen extends State<CommentScreen> {
+  var commentInput = TextEditingController();
+  var post;
+  var allPostComments;
   var likeColor = Colors.black;
   bool postLike ;
+  String postId;
 
   @override
   void initState() {
+    // TODO: implement initState
     super.initState();
-    _controller = ScrollController();
-    _controller.addListener(_scrollListener);
-    refreshList();
+    post = this.widget.post;
+    postId = this.widget.post['post']['_id'];
   }
 
-  _scrollListener() {
-    if (_controller.offset >= _controller.position.maxScrollExtent &&
-        !_controller.position.outOfRange) {
-      setState(() {
-        print("reach the bottom");
-      });
-    }
-    if (_controller.offset <= _controller.position.minScrollExtent &&
-        !_controller.position.outOfRange) {
-      setState(() {
-         print("reach the top");
-      });
-    }
+  @override
+  void dispose(){
+    super.dispose();
+    commentInput.dispose();
   }
 
-  Future<void> refreshList() async {
-    refreshKey.currentState?.show(atTop: false);
-    await Future.delayed(Duration(seconds: 1));
-    setState(() {
-      timelinePosts = fetchTimelinePosts();
-    });
-  }
-
-  Widget scrollableMenuBar (){
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        ProfileMenuBar()
-      ],
+  // comment input widget
+  Widget commentInputArea(context){
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey[100],
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(0),
+      ),
+      padding: EdgeInsets.fromLTRB(0,0,0,10),
+      child: Row(
+        children: <Widget>[
+          Container(
+            margin: EdgeInsets.all(5),
+            child: Icon(Icons.mood, color: Colors.grey[700]),
+          ),
+          Flexible(
+            flex: 1,
+            fit: FlexFit.tight,
+            child: TextField(
+              controller: commentInput,
+              decoration: new InputDecoration(
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.only(left: 5, bottom: 1, top: 1, right: 5),
+                  hintText: 'Add your comment...'
+              ),
+            ),
+          ),
+          GestureDetector(
+            child: Container(
+              margin: EdgeInsets.fromLTRB(5,5,10,5),
+              child: Icon(Icons.send, color: Colors.grey[700]),
+            ),
+            onTap: () async {
+              // send comments
+              var commentText = commentInput.text;
+              commentInput.text = "";
+              await postComment(postId, commentText);
+              setState(() {
+                allPostComments = fetchComments(postId);
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget timelineListView(data){
-    return ListView.builder(
-      controller: _controller,
-      itemCount: data?.length,
-      itemBuilder: (context, index){
-        index--;
-        if(index == -1){
-          return scrollableMenuBar();
-        }else{
-          if(data[index]['media'][0]['media_type'] == 1){
-            return postWithImages(data[index]);
-          }else{
-            return postWithVideos(data[index]);
-          }
-        }
-      },
-    );
-  }
-
+  // post with images
   Widget postWithImages (dynamic post) => Container(
     margin: EdgeInsets.fromLTRB(0,0,0,15),
     child: Column(
@@ -389,7 +394,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
                         ],
                       )
                   ),
-                  onTap: () async {
+                  onDoubleTap: () async {
                     setState(() {
                       likeColor = Colors.redAccent;
                     });
@@ -402,14 +407,14 @@ class _PostTimelineStories extends State<PostTimelineStories> {
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.chat_bubble_outline, size: 24),
-                        Text(post['comments'], style: TextStyle(fontSize: 12)),
+                        Text('', style: TextStyle(fontSize: 12)),
                       ],
                     ),
                   ),
                   onTap: (){
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => CommentScreen(post: post)),
+                      MaterialPageRoute(builder: (context) => CommentScreen(post: post['post'])),
                     );
                   },
                 ),
@@ -441,6 +446,7 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     ),
   );
 
+  // post with videos
   Widget postWithVideos (dynamic post) => Container(
     margin: EdgeInsets.fromLTRB(0,0,0,15),
     child: Column(
@@ -542,25 +548,163 @@ class _PostTimelineStories extends State<PostTimelineStories> {
     ),
   );
 
+  // build list widget
+  Widget postCommentLists(comments){
+    return ListView.builder(
+      itemCount: comments.length,
+      itemBuilder: (context, index){
+        index--;
+        if(index == -1){
+          return buildPostView(post);
+        }else{
+          return buildPostComments(comments[index]);
+        }
+      }
+    );
+  }
+
+  // build list widget element
+  Widget buildPostComments(comment){
+    return  Container(
+        padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+        child: ListTile(
+          leading: Container(
+            width: 35.0,
+            height: 35.0,
+            decoration: new BoxDecoration(
+                shape: BoxShape.circle,
+                image: new DecorationImage(
+                  fit: BoxFit.fill,
+                  image: NetworkImage(comment['user']['avatar']),
+                )
+            ),
+          ),
+          title: Container(
+            child: Row(
+              children: <Widget>[
+                Flexible(
+                  flex: 1,
+                  fit: FlexFit.tight,
+                  child: Text('${comment['user']['names']} - @${comment['user']['username']}', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
+                ),
+                Container(
+                  child: Text(comment['createdAt'], style: TextStyle(fontSize: 10.0, color: Colors.grey[500])),
+                )
+              ],
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(
+                child: Text(comment['body'], style: TextStyle(fontSize: 12)),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.fromLTRB(0, 15, 5, 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Icon(Icons.favorite_border, size: 16, color: Colors.black54),
+                        Text('likes'),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.fromLTRB(15, 15, 5, 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Icon(Icons.reply, size: 16, color: Colors.black54),
+                        Text('replies'),
+                      ],
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+          dense: true,
+          onTap: () async {
+
+          },
+        ),
+    );
+  }
+
+  // build post view
+  Widget buildPostView(post){
+    if(post['media'][0]['media_type'] == 1){
+      return postWithImages(post);
+    }else{
+      return postWithVideos(post);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: fetchTimelinePosts(),
-        builder: (context, snapshot){
-          if(snapshot.hasData){
-            timelinePosts = snapshot.data;
-            return RefreshIndicator(
-              key: refreshKey,
-              onRefresh: refreshList,
-              child: timelineListView(timelinePosts),
-            );
-          } else if(snapshot.hasError) {
-            return Text("${snapshot.error}");
-          }
-          return Center(
-            child: ShowLoader(),
-          );
-        }
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          color: Colors.white,
+          child: Column(
+            children: <Widget>[
+              Container(
+                width: double.infinity,
+                height: 55,
+                color: Colors.white,
+                margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 45.0,
+                      height: 45.0,
+                      child: GestureDetector(
+                        child: Icon(Icons.arrow_back),
+                        onTap: (){
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    Container(
+                        padding: EdgeInsets.all(9),
+                        child: Row(
+                          children: <Widget>[
+                            Center(
+                                child: Text('Comments',
+                                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
+                                )
+                            ),
+                          ],
+                        )
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: FutureBuilder(
+                  future: fetchComments(postId),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      allPostComments = snapshot.data;
+                      allPostComments.add('first');
+                      return postCommentLists(allPostComments);
+                    } else if (snapshot.hasError) {
+                      return Text("${snapshot.error}");
+                    }
+                    return Center(
+                      child: ShowLoader(),
+                    );
+                  },
+                ),
+              ),
+              commentInputArea(context)
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -11,12 +11,14 @@ class ProfileScreen extends StatefulWidget {
   @override
   _ProfileScreen createState() => _ProfileScreen();
 }
-
 class _ProfileScreen extends State<ProfileScreen> {
+
+  var profile;
 
   @override
   void initState(){
     super.initState();
+    profile = loadUsersList();
   }
 
   Widget _profileDetails(profile){
@@ -103,14 +105,26 @@ class _ProfileScreen extends State<ProfileScreen> {
       child: new StaggeredGridView.countBuilder(
         crossAxisCount: 4,
         itemCount: recentPost.length,
-        itemBuilder: (BuildContext context, int index) => new Container(
-          decoration: new BoxDecoration(
-              image: new DecorationImage(
-                fit: BoxFit.fill,
-                image: new NetworkImage(recentPost[index]['media']['media_url']),
-              )
-          ),
-        ),
+        itemBuilder: (BuildContext context, int index){
+          if(recentPost[index]['media']['media_type'] == 1){
+            return Container(
+              height: 400,
+              decoration: new BoxDecoration(
+                  image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: new NetworkImage(recentPost[index]['media']['media_url']),
+                  )
+              ),
+            );
+          }else{
+            return Container(
+              height: 400,
+              decoration: new BoxDecoration(
+
+              ),
+            );
+          }
+        },
         staggeredTileBuilder: (int index) =>
         new StaggeredTile.count(2, index.isEven ? 2 : 1),
         mainAxisSpacing: 4.0,

@@ -72,7 +72,7 @@ class _UserList extends State<UserList>{
     super.initState();
   }
 
-  Future<void> loadUsersList() async {
+  Future loadUsersList() async {
     final response = await http.get('http://zlayit.net/user');
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response, then parse the JSON.
@@ -96,7 +96,8 @@ class _UserList extends State<UserList>{
   }
 
   Widget buildUsersList(user){
-    return Column(
+    return ListView(
+      shrinkWrap: true,
       children: <Widget>[
         Container(
           width: 50,

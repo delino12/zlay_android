@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:Zlay/widgets/loader.dart';
+import 'package:Zlay/repository/services.dart';
 
-
-class CommentScreen extends StatefulWidget {
+class CommentRepliesScreen extends StatefulWidget {
+  @override
+  _CommentRepliesScreen createState() => _CommentRepliesScreen();
+}
+class _CommentRepliesScreen extends State<CommentRepliesScreen> {
 
   @override
-  _CommentScreen createState() => _CommentScreen();
-}
-class _CommentScreen extends State<CommentScreen> {
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +44,7 @@ class _CommentScreen extends State<CommentScreen> {
                         child: Row(
                           children: <Widget>[
                             Center(
-                                child: Text('Comments',
+                                child: Text('Comment Replies',
                                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
                                 )
                             ),

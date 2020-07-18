@@ -7,7 +7,6 @@ class ProfileMenuBar extends StatefulWidget {
   @override
   _ProfileMenuBar createState() => _ProfileMenuBar();
 }
-
 class _ProfileMenuBar extends State<ProfileMenuBar>{
 
   String email = '';
@@ -38,10 +37,10 @@ class _ProfileMenuBar extends State<ProfileMenuBar>{
       height: 55,
       color: Colors.white,
       margin: EdgeInsets.all(9),
-      child: Row(
-        children: <Widget>[
-          GestureDetector(
-            child: Container(
+      child: GestureDetector(
+        child: Row(
+          children: <Widget>[
+            Container(
               width: 45.0,
               height: 45.0,
               decoration: new BoxDecoration(
@@ -52,42 +51,31 @@ class _ProfileMenuBar extends State<ProfileMenuBar>{
                   )
               ),
             ),
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => new ProfileScreen()));
-            },
-          ),
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: Container(
-                margin: EdgeInsets.fromLTRB(5, 10, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(names,
-                        style: TextStyle(fontWeight: FontWeight.w500,
-                            fontSize: 16)
-                    ),
-                    Text('Apapa Lagos, NG',
-                      style: TextStyle(fontWeight: FontWeight.w400,
-                          fontSize: 13),
-                    ),
-                  ],
-                )
+            Flexible(
+              flex: 1,
+              fit: FlexFit.tight,
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(5, 10, 0, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(names,
+                          style: TextStyle(fontWeight: FontWeight.w500,
+                              fontSize: 16)
+                      ),
+                      Text('Apapa Lagos, NG',
+                        style: TextStyle(fontWeight: FontWeight.w400,
+                            fontSize: 13),
+                      ),
+                    ],
+                  )
+              ),
             ),
-          ),
-          Container(
-            child: GestureDetector(
-              child: Icon(Icons.settings),
-              onTap: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingScreen()),
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
+        onTap: (){
+          Navigator.push(context, MaterialPageRoute(builder: (context) => new ProfileScreen()));
+        },
       ),
     );
   }
@@ -97,7 +85,6 @@ class ProfileMenuBarNoOption extends StatefulWidget {
   @override
   _ProfileMenuBarNoOption createState() => _ProfileMenuBarNoOption();
 }
-
 class _ProfileMenuBarNoOption extends State<ProfileMenuBarNoOption>{
 
   String email = '';

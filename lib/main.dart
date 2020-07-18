@@ -17,7 +17,6 @@ class MyApp extends StatefulWidget {
   @override
   _MyApp createState() => _MyApp();
 }
-
 class _MyApp extends State<MyApp> {
   // This widget is the root of your application.
   bool isLogin;
@@ -58,7 +57,6 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
-
 class _MyHomePageState extends State<MyHomePage> {
 
   @override

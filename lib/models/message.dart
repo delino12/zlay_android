@@ -1,10 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:Zlay/views/chat.dart';
 import 'package:Zlay/widgets/loader.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:Zlay/repository/services.dart';
 
 class Follower {
   String id;
@@ -37,7 +35,6 @@ class Follower {
     );
   }
 }
-
 class FollowerList extends StatefulWidget {
   @override
   _FollowerList createState() => _FollowerList();
@@ -50,31 +47,16 @@ class _FollowerList extends State<FollowerList> {
     super.initState();
   }
 
-  Future __fetchFollower() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('_userId');
-
-    final response = await http.get('http://zlayit.net/follower?user_id=${userId}');
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response, then parse the JSON.
-      List collections = json.decode(response.body)['data'];
-      return collections;
-    } else {
-      // If the server did not return a 200 OK response, then throw an exception.
-      throw Exception('Failed to load notifications from API');
-    }
-  }
-
-  ListView __followerListView (follower){
+  ListView followerListView (follower){
     return ListView.builder(
       itemCount: follower.length,
       itemBuilder: (context, index){
-        return __buildFollowerList(follower[index]);
+        return buildFollowerList(follower[index]);
       },
     );
   }
 
-  Widget __buildFollowerList(follower){
+  Widget buildFollowerList(follower){
     return Container(
       child: ListTile(
         leading: Container(
@@ -106,8 +88,9 @@ class _FollowerList extends State<FollowerList> {
         dense: true,
         onTap: () async {
           var prefs = await SharedPreferences.getInstance();
-          prefs.setString('receiver_id', follower['user']['_id']);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen()));
+          var receiverId = follower['user']['_id'];
+          var senderId = prefs.getString('_userId');
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(senderId: senderId, receiverId: receiverId)));
         },
       ),
     );
@@ -116,11 +99,11 @@ class _FollowerList extends State<FollowerList> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-        future: __fetchFollower(),
+        future: fetchFollowers(),
         builder: (context, snapshot){
           if(snapshot.hasData){
             List followers = snapshot.data;
-            return  __followerListView(followers);
+            return  followerListView(followers);
           } else if(snapshot.hasError) {
             return Text("${snapshot.error}");
           }
