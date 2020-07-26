@@ -34,15 +34,15 @@ class _ProfileMenuBar extends State<ProfileMenuBar>{
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 55,
+      height: 45,
       color: Colors.white,
       margin: EdgeInsets.all(9),
       child: GestureDetector(
         child: Row(
           children: <Widget>[
             Container(
-              width: 45.0,
-              height: 45.0,
+              width: 25.0,
+              height: 25.0,
               decoration: new BoxDecoration(
                   shape: BoxShape.circle,
                   image: new DecorationImage(
@@ -112,14 +112,22 @@ class _ProfileMenuBarNoOption extends State<ProfileMenuBarNoOption>{
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 55,
-      color: Colors.white,
-      margin: EdgeInsets.all(9),
+      height: 50,
+      padding: EdgeInsets.fromLTRB(5,0,0,0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide( //                   <--- left side
+            color: Colors.black12,
+            width: 1.0,
+          ),
+        ),
+      ),
       child: Row(
         children: <Widget>[
           Container(
-            width: 45.0,
-            height: 45.0,
+            width: 32.0,
+            height: 32.0,
             decoration: new BoxDecoration(
                 shape: BoxShape.circle,
                 image: new DecorationImage(

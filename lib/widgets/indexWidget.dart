@@ -3,6 +3,7 @@ import 'package:Zlay/views/timeline.dart';
 import 'package:Zlay/views/notification.dart';
 import 'package:Zlay/views/favorite.dart';
 import 'package:Zlay/views/messages.dart';
+import 'package:Zlay/views/profile.dart';
 import 'package:Zlay/views/newTimelinePost.dart';
 import 'package:unicorndial/unicorndial.dart';
 
@@ -31,6 +32,7 @@ class _IndexWidget extends State<IndexWidget> {
     new NotificationScreen(),
     new FavoriteScreen(),
     new MessageScreen(),
+    new ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -90,7 +92,7 @@ class _IndexWidget extends State<IndexWidget> {
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
           icon: Icon(Icons.notifications_none),
-          title: Text('Notifications', style: TextStyle(fontSize: 12),),
+          title: Text('Notification', style: TextStyle(fontSize: 12),),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
@@ -100,7 +102,12 @@ class _IndexWidget extends State<IndexWidget> {
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
           icon: Icon(Icons.mail_outline),
-          title: Text('Inbox', style: TextStyle(fontSize: 12),),
+          title: Text('Message', style: TextStyle(fontSize: 12),),
+        ),
+        BottomNavigationBarItem(
+          backgroundColor: Colors.white,
+          icon: Icon(Icons.perm_identity),
+          title: Text('Profile', style: TextStyle(fontSize: 12),),
         ),
       ],
       currentIndex: _selectedIndex,

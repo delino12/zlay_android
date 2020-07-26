@@ -131,7 +131,7 @@ class _ChatScreen extends State<ChatScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
-          color: Colors.grey[100],
+          color: Colors.white,
           width: 1,
         ),
         borderRadius: BorderRadius.circular(0),
@@ -226,11 +226,20 @@ class _ChatScreen extends State<ChatScreen> {
       child: Scaffold(
         body: Container(
           color: Colors.white,
-          child: Column(
-            children: <Widget>[
-              _chatTitleArea(context),
-              _chatMessageArea(context),
-              _chatInputArea(context)
+          child: Stack(
+            children: [
+              Image.asset("assets/images/zlay_chat_bg.jpg",
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                fit: BoxFit.cover,
+              ),
+              Column(
+                children: <Widget>[
+                  _chatTitleArea(context),
+                  _chatMessageArea(context),
+                  _chatInputArea(context)
+                ],
+              ),
             ],
           ),
         ),

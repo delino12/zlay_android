@@ -4,6 +4,7 @@ import 'package:Zlay/repository/services.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:Zlay/views/commentsReplies.dart';
 
 class PreviewVideoPlayer extends StatefulWidget {
   final String url;
@@ -412,10 +413,7 @@ class _CommentScreen extends State<CommentScreen> {
                     ),
                   ),
                   onTap: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CommentScreen(post: post['post'])),
-                    );
+                    print('already in comment screen');
                   },
                 ),
                 Container(
@@ -603,24 +601,38 @@ class _CommentScreen extends State<CommentScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.fromLTRB(0, 15, 5, 5),
-                    child: Column(
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 5),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Icon(Icons.favorite_border, size: 16, color: Colors.black54),
-                        Text('likes'),
+                        Icon(Icons.favorite_border, size: 18, color: Colors.black54),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(0,5,0,0),
+                          child: Text('42 likes'),
+                        ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.fromLTRB(15, 15, 5, 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Icon(Icons.reply, size: 16, color: Colors.black54),
-                        Text('replies'),
-                      ],
-                    ),
+                    padding: EdgeInsets.fromLTRB(5, 15, 5, 5),
+                    child: GestureDetector(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Icon(Icons.reply, size: 18, color: Colors.black54),
+                          Container(
+                            margin: EdgeInsets.fromLTRB(0,5,0,0),
+                            child: Text('12 replies'),
+                          ),
+                        ],
+                      ),
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CommentRepliesScreen(comment: comment)),
+                        );
+                      },
+                    )
                   )
                 ],
               )

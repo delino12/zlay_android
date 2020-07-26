@@ -50,6 +50,7 @@ dependencies:
   flutter_native_image: ^0.0.5
   path_provider: ^1.6.11
   cached_network_image: ^2.2.0+1
+  simple_moment: ^1.0.6
 
 dev_dependencies:
   json_serializable: ^3.2.5

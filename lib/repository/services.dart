@@ -299,9 +299,36 @@ Future fetchAllRecent() async {
   }
 }
 
+// fetch all user recent with args
+Future<void> loadUserRecentPost(String userId) async {
+  final response = await http.get('http://zlayit.net/timeline/recent?user_id=$userId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['posts'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+Future loadUserProfileRecentPost() async {
+  var prefs =  await SharedPreferences.getInstance();
+  final String userId = prefs.getString('_userId');
+  final response = await http.get('http://zlayit.net/timeline/recent?user_id=${userId}');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['posts'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
 // fetch zlay timeline tv post
 Future<void> fetchZlayTvPost() async {
-  final http.Response response = await http.get('http://zlayit.net/posts',
+  final http.Response response = await http.get('http://zlayit.net/timeline/tv/post',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       }
@@ -345,6 +372,19 @@ Future<void> fetchTimelinePosts() async {
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     var responseData = json.decode(response.body)['posts'];
+    return responseData;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load posts from API');
+  }
+}
+
+// fetch real timeline post
+Future<void> loadUserProfile(profileUserId) async {
+  final response = await http.get('http://zlayit.net/user/$profileUserId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    var responseData = json.decode(response.body)['data'];
     return responseData;
   } else {
     // If the server did not return a 200 OK response, then throw an exception.
@@ -459,6 +499,22 @@ Future loadChatUserProfile(receiverId) async {
 }
 
 // fetch chat from api
+Future fetchChatHistory() async {
+  var pref = await SharedPreferences.getInstance();
+  var senderId = pref.getString('_userId');
+
+  final response = await http.get('http://zlayit.net/chats/history?sender_id=$senderId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load notifications from API');
+  }
+}
+
+// fetch chat from api
 Future fetchChat(senderId, receiverId) async {
   print('sender id: $senderId');
   print('receiver id: $receiverId');
@@ -529,7 +585,6 @@ class DisplayNotification extends StatefulWidget {
   _DisplayNotification createState() => _DisplayNotification();
 }
 class _DisplayNotification extends State<DisplayNotification> {
-
 
   @override
   void initState(){

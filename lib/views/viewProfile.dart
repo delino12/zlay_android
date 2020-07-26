@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:Zlay/widgets/loader.dart';
-import 'package:Zlay/models/profile.dart';
-import 'package:Zlay/models/userPost.dart';
 import 'package:Zlay/repository/services.dart';
+import 'package:Zlay/repository/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Zlay/views/followers.dart';
 import 'package:Zlay/views/following.dart';
+import 'package:Zlay/views/chat.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/painting.dart';
 import 'dart:ui';
@@ -162,17 +163,22 @@ class _PlayPauseOverlay extends State<PlayPauseOverlay> {
   }
 }
 
-class ProfileScreen extends StatefulWidget {
+class ViewProfileScreen extends StatefulWidget {
+  final String userId;
+  ViewProfileScreen({Key key, this.userId}) : super(key: key);
+
   @override
-  _ProfileScreen createState() => _ProfileScreen();
+  _ViewProfileScreen createState() => _ViewProfileScreen();
 }
-class _ProfileScreen extends State<ProfileScreen> {
+class _ViewProfileScreen extends State<ViewProfileScreen> {
   var profile;
   var recentPost = [];
+  var profileUserId;
 
   @override
   void initState(){
     super.initState();
+    profileUserId = this.widget.userId;
   }
 
   @override
@@ -180,37 +186,44 @@ class _ProfileScreen extends State<ProfileScreen> {
     return SafeArea(
       child: Material(
         child: FutureBuilder(
-          future: loadUsersList(),
+          future: loadUserProfile(profileUserId),
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               profile = snapshot.data;
               return FutureBuilder(
-                future: loadUserProfileRecentPost(),
+                future: loadUserRecentPost(profileUserId),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     var recentPost = snapshot.data;
                     return CustomScrollView(
                       slivers: [
-                        SliverPersistentHeader(
-                          delegate: MySliverAppBar(
-                              expandedHeight: 200,
-                              userAvatar: profile['user']['avatar'],
-                              userName: profile['user']['username']
-                          ),
+                        SliverAppBar(
+                          expandedHeight: 300,
+                          snap: false,
                           pinned: false,
                           floating: true,
+                          elevation: 4.0,
+                          flexibleSpace: FlexibleSpaceBar(
+                            title: Text(profile['user']['names']),
+                            stretchModes: [
+                              StretchMode.zoomBackground,
+                              StretchMode.blurBackground,
+                              StretchMode.fadeTitle
+                            ],
+                            background: Image.network(profile['user']['avatar'], fit: BoxFit.cover),
+                          ),
                         ),
                         SliverFixedExtentList(
-                          itemExtent: 50.0,
+                          itemExtent: 20.0,
                           delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
                             return Container(
-                              height: 350,
+                              height: 10,
                               alignment: Alignment.center,
                               color: Colors.white,
                               child: Text(''),
                             );
                           },
-                            childCount: 2,
+                            childCount: 1,
                           ),
                         ),
                         SliverFixedExtentList(
@@ -226,7 +239,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text(profile['user']['names'], style: TextStyle(fontSize: 18),),
+                                        Text('Say hi to ${profile['user']['names']},', style: TextStyle(fontSize: 18),),
                                         Text('@${profile['user']['username']}', style: TextStyle(fontSize: 14),),
                                       ],
                                     )
@@ -238,27 +251,80 @@ class _ProfileScreen extends State<ProfileScreen> {
                           ),
                         ),
                         SliverFixedExtentList(
-                          itemExtent: 50.0,
+                          itemExtent: 60.0,
                           delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
                             return Container(
                               height: 350,
                               alignment: Alignment.center,
                               color: Colors.white,
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center, //Center Row contents horizontally,
                                 crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   GestureDetector(
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.perm_identity, size: 16,),
-                                        Text('Edit', style: TextStyle(fontSize: 16),)
-                                      ],
+                                    child:  Container(
+                                      padding: EdgeInsets.all(10),
+                                      margin: EdgeInsets.fromLTRB(0, 0, 5, 0),
+                                      child: Text(' * Follow ${profile['user']['username']}'),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border(
+                                          bottom: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          top: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          left: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          right: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     onTap: (){
-                                      print('Profile');
+
                                     },
-                                  )
+                                  ),
+                                  GestureDetector(
+                                    child:  Container(
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        border: Border(
+                                          bottom: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          top: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          left: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                          right: BorderSide( //                   <--- left side
+                                            color: Colors.black12,
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(' Message ${profile['user']['username']}'),
+                                    ),
+                                    onTap: () async {
+                                      var prefs = await SharedPreferences.getInstance();
+                                      var receiverId = profile['user']['_id'];
+                                      var senderId = prefs.getString('_userId');
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(senderId: senderId, receiverId: receiverId)));
+                                    },
+                                  ),
                                 ],
                               )
                             );
@@ -285,39 +351,23 @@ class _ProfileScreen extends State<ProfileScreen> {
                                       Text('${profile['timeline']}')
                                     ],
                                   ),
-                                  GestureDetector(
-                                    child: Column(
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.fromLTRB(15,5,15,5),
-                                          child: Text('Followers'),
-                                        ),
-                                        Text('${profile['followers']}')
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => Follower()),
-                                      );
-                                    },
+                                  Column(
+                                    children: <Widget>[
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(15,5,15,5),
+                                        child: Text('Followers'),
+                                      ),
+                                      Text('${profile['followers']}')
+                                    ],
                                   ),
-                                  GestureDetector(
-                                    child: Column(
-                                      children: <Widget>[
-                                        Container(
-                                          padding: EdgeInsets.fromLTRB(15,5,15,5),
-                                          child: Text('Following'),
-                                        ),
-                                        Text('${profile['following']}')
-                                      ],
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => Following()),
-                                      );
-                                    },
+                                  Column(
+                                    children: <Widget>[
+                                      Container(
+                                        padding: EdgeInsets.fromLTRB(15,5,15,5),
+                                        child: Text('Following'),
+                                      ),
+                                      Text('${profile['following']}')
+                                    ],
                                   )
                                 ],
                               ),
@@ -347,13 +397,13 @@ class _ProfileScreen extends State<ProfileScreen> {
                             delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
                               if(recentPost[index]['media']['media_type'] == 1){
                                 return GestureDetector(
-                                    onTap: (){
+                                  onTap: (){
 //                                      Navigator.push(
 //                                        context,
 //                                        MaterialPageRoute(builder: (context) => CommentScreen(post: recentPost)),
 //                                      );
-                                      print(recentPost[index]);
-                                    },
+                                    print(recentPost[index]);
+                                  },
                                   child: Container(
                                     height: 400,
                                     decoration: new BoxDecoration(
@@ -376,7 +426,7 @@ class _ProfileScreen extends State<ProfileScreen> {
 //                                      );
                                     print(recentPost[index]);
                                   },
-                                ); 
+                                );
                               }
                             },
                               childCount: recentPost.length,
@@ -473,7 +523,6 @@ class MySliverAppBar extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-
       ],
     );
   }

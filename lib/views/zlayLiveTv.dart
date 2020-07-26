@@ -159,6 +159,7 @@ class ZlayLiveTV extends StatefulWidget {
   _ZlayLiveTV createState() => _ZlayLiveTV();
 }
 class _ZlayLiveTV extends State<ZlayLiveTV> {
+  var tvPost;
 
   @override
   void initState(){
@@ -174,7 +175,7 @@ class _ZlayLiveTV extends State<ZlayLiveTV> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          PreviewVideoPlayer(url: post['media'][0]['media_url']),
+          PreviewVideoPlayer(url: post['media']['media_url']),
           Container(
             height: 45,
             padding: EdgeInsets.all(5),
@@ -206,7 +207,7 @@ class _ZlayLiveTV extends State<ZlayLiveTV> {
                 ),
                 Container(
                   padding: EdgeInsets.all(5),
-                  child: Text(post['post']['createdAt'], style: TextStyle(color: Colors.white),),
+                  child: Text('', style: TextStyle(color: Colors.white),),
                 ),
               ],
             ),
@@ -221,11 +222,7 @@ class _ZlayLiveTV extends State<ZlayLiveTV> {
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index){
-        if(data[index]['media'][0]['media_type'] == 2){
-          return postWithVideos(data[index]);
-        }else{
-          return SizedBox();
-        }
+        return postWithVideos(data[index]);
       }
     );
   }
@@ -276,7 +273,8 @@ class _ZlayLiveTV extends State<ZlayLiveTV> {
                     future: fetchZlayTvPost(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
-                        var tvPost = snapshot.data;
+                        tvPost = snapshot.data;
+                        print(tvPost);
                         return _buildPostListView(tvPost);
                       } else if (snapshot.hasError) {
                         return Text("${snapshot.error}");
