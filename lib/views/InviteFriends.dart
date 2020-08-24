@@ -1,6 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contact/contact.dart';
+import 'package:Zlay/widgets/loader.dart';
 
-class InviteFriends extends StatelessWidget {
+class InviteFriends extends StatefulWidget {
+
+  @override
+  _InviteFriends createState() => _InviteFriends();
+}
+class _InviteFriends extends State<InviteFriends> {
+  Iterable<Contact> contactLists;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    loadContacts();
+  }
+
+  Future<dynamic> loadContacts() async {
+    // Get all contacts on device
+
+  }
+
+  ListView contactListView (contacts){
+    return ListView.builder(
+      itemCount: contacts.length,
+      itemBuilder: (context, index){
+        return buildContactList(contacts[index]);
+      },
+    );
+  }
+
+  Widget buildContactList(contact){
+    return ListTile(
+      leading: Icon(Icons.contacts),
+      title: Text('Phone here..'),
+      subtitle: Text('Invites to zlay'),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +79,22 @@ class InviteFriends extends StatelessWidget {
                   ],
                 ),
               ),
-              Expanded(
-                child: ListView(
-                  children: <Widget>[
-
-                  ],
-                ),
-              ),
+//              Expanded(
+//                child: FutureBuilder(
+//                    future: loadContacts(),
+//                    builder: (context, snapshot){
+//                      if(snapshot.hasData){
+//                        contactLists = snapshot.data;
+//                        return  contactListView(contactLists);
+//                      } else if(snapshot.hasError) {
+//                        return Text("${snapshot.error}");
+//                      }
+//                      return Center(
+//                        child: ShowLoader(),
+//                      );
+//                    }
+//                ),
+//              ),
             ],
           ),
         ),

@@ -3,8 +3,8 @@ import 'package:Zlay/widgets/loader.dart';
 import 'package:Zlay/repository/services.dart';
 
 class CommentRepliesScreen extends StatefulWidget {
-  final Map comment;
-  CommentRepliesScreen({Key key, this.comment}) : super(key: key);
+  final String commentId;
+  CommentRepliesScreen({Key key, this.commentId}) : super(key: key);
 
   @override
   _CommentRepliesScreen createState() => _CommentRepliesScreen();
@@ -18,7 +18,7 @@ class _CommentRepliesScreen extends State<CommentRepliesScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    commentId = this.widget.comment['_id'];
+    commentId = this.widget.commentId;
   }
 
   // comment input widget
@@ -61,7 +61,7 @@ class _CommentRepliesScreen extends State<CommentRepliesScreen> {
               // send comments
               var commentReplyText = commentReplyInput.text;
               commentReplyInput.text = "";
-              await postComment(commentId, commentReplyText);
+              await postCommentReply(commentId, commentReplyText);
               setState(() {
                 allCommentReplies = fetchCommentReplies(commentId);
               });
@@ -158,7 +158,7 @@ class _CommentRepliesScreen extends State<CommentRepliesScreen> {
                         child: Row(
                           children: <Widget>[
                             Center(
-                                child: Text('Comments',
+                                child: Text('Reply comment',
                                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
                                 )
                             ),
@@ -173,8 +173,7 @@ class _CommentRepliesScreen extends State<CommentRepliesScreen> {
                   future: fetchCommentReplies(commentId),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      allCommentReplies = snapshot.data;
-                      allCommentReplies.add('first');
+                      var allCommentReplies = snapshot.data;
                       return commentReplyList(allCommentReplies);
                     } else if (snapshot.hasError) {
                       return Text("${snapshot.error}");

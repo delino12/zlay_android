@@ -51,6 +51,10 @@ dependencies:
   path_provider: ^1.6.11
   cached_network_image: ^2.2.0+1
   simple_moment: ^1.0.6
+  emoji_picker: ^0.1.0
+  fluttericon: 1.0.7
+  badges: ^1.1.1
+  flutter_contact: ^0.6.1
 
 dev_dependencies:
   json_serializable: ^3.2.5

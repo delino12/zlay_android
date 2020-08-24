@@ -6,6 +6,8 @@ import 'package:Zlay/views/messages.dart';
 import 'package:Zlay/views/profile.dart';
 import 'package:Zlay/views/newTimelinePost.dart';
 import 'package:unicorndial/unicorndial.dart';
+import 'package:fluttericon/font_awesome_icons.dart';
+import 'package:badges/badges.dart';
 
 // Tim Widget on state
 class IndexWidget extends StatefulWidget{
@@ -83,31 +85,49 @@ class _IndexWidget extends State<IndexWidget> {
     return  BottomNavigationBar(
       backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
-      items: const <BottomNavigationBarItem>[
+      items: <BottomNavigationBarItem>[
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
-          icon: Icon(Icons.home),
-          title: Text('Timeline', style: TextStyle(fontSize: 12),),
+          icon: Icon(FontAwesome.home, size: 22,),
+          title: Text('home'),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
-          icon: Icon(Icons.notifications_none),
-          title: Text('Notification', style: TextStyle(fontSize: 12),),
+          icon: Badge(
+              shape: BadgeShape.circle,
+              borderRadius: 100,
+              child: Icon(FontAwesome.bell, size: 22,),
+              badgeContent: Container(
+                height: 3,
+                width: 3,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+              ),
+          ),
+          title: Text('notification'),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
-          icon: Icon(Icons.favorite_border),
-          title: Text('Favorite', style: TextStyle(fontSize: 12),),
+          icon: Icon(FontAwesome.heart_empty, size: 22,),
+          title: Text('favorite'),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
-          icon: Icon(Icons.mail_outline),
-          title: Text('Message', style: TextStyle(fontSize: 12),),
+          icon: Badge(
+            shape: BadgeShape.circle,
+            borderRadius: 100,
+            child: Icon(FontAwesome.mail, size: 22,),
+            badgeContent: Container(
+              height: 3,
+              width: 3,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+            ),
+          ),
+          title: Text('message'),
         ),
         BottomNavigationBarItem(
           backgroundColor: Colors.white,
-          icon: Icon(Icons.perm_identity),
-          title: Text('Profile', style: TextStyle(fontSize: 12),),
+          icon: Icon(FontAwesome.user, size: 22,),
+          title: Text('profile'),
         ),
       ],
       currentIndex: _selectedIndex,

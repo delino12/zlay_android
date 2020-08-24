@@ -5,6 +5,7 @@ import 'package:Zlay/models/userPost.dart';
 import 'package:Zlay/repository/services.dart';
 import 'package:Zlay/views/followers.dart';
 import 'package:Zlay/views/following.dart';
+import 'package:Zlay/views/editProfile.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/painting.dart';
 import 'dart:ui';
@@ -256,7 +257,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                                       ],
                                     ),
                                     onTap: (){
-                                      print('Profile');
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => EditProfile()),
+                                      );
                                     },
                                   )
                                 ],

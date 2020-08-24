@@ -110,53 +110,57 @@ class _ProfileMenuBarNoOption extends State<ProfileMenuBarNoOption>{
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 50,
-      padding: EdgeInsets.fromLTRB(5,0,0,0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide( //                   <--- left side
-            color: Colors.black12,
-            width: 1.0,
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 2,
+      child: Container(
+        width: double.infinity,
+        height: 60,
+        padding: EdgeInsets.fromLTRB(5,0,0,0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide( //                   <--- left side
+              color: Colors.black12,
+              width: 1.0,
+            ),
           ),
         ),
-      ),
-      child: Row(
-        children: <Widget>[
-          Container(
-            width: 32.0,
-            height: 32.0,
-            decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                  fit: BoxFit.fill,
-                  image: new NetworkImage(avatar),
-                )
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 35.0,
+              height: 35.0,
+              decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: new NetworkImage(avatar),
+                  )
+              ),
             ),
-          ),
-          Flexible(
-            flex: 1,
-            fit: FlexFit.tight,
-            child: Container(
-                margin: EdgeInsets.fromLTRB(5, 10, 0, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(names,
-                        style: TextStyle(fontWeight: FontWeight.w500,
-                            fontSize: 16)
-                    ),
-                    Text('Apapa Lagos, NG',
-                      style: TextStyle(fontWeight: FontWeight.w400,
-                          fontSize: 13),
-                    ),
-                  ],
-                )
+            Flexible(
+              flex: 1,
+              fit: FlexFit.tight,
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(10, 15, 0, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(names,
+                          style: TextStyle(fontWeight: FontWeight.w500,
+                              fontSize: 16)
+                      ),
+                      Text('Apapa Lagos, NG',
+                        style: TextStyle(fontWeight: FontWeight.w400,
+                            fontSize: 13),
+                      ),
+                    ],
+                  )
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
