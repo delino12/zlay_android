@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:Zlay/repository/services.dart';
 import 'package:Zlay/widgets/loader.dart';
 import 'package:bubble/bubble.dart';
+import 'package:emoji_picker/emoji_picker.dart';
 
 // Chat Messages Screen
 class ChatScreen extends StatefulWidget {
@@ -18,12 +19,26 @@ class _ChatScreen extends State<ChatScreen> {
   var chatConversations;
   String senderId;
   String receiverId;
+  bool isShowSticker;
 
   @override
   void initState() {
     super.initState();
     senderId = this.widget.senderId;
     receiverId = this.widget.receiverId;
+    isShowSticker = false;
+  }
+
+  Future<bool> onBackPress() {
+    if (isShowSticker) {
+      setState(() {
+        isShowSticker = false;
+      });
+    } else {
+      Navigator.pop(context);
+    }
+
+    return Future.value(false);
   }
 
   Future<void> refreshChatArea() async {
@@ -44,49 +59,59 @@ class _ChatScreen extends State<ChatScreen> {
     return Container(
       width: double.infinity,
       height: 55,
-      color: Colors.white,
+      color: Colors.transparent,
       margin: EdgeInsets.all(9),
       child: FutureBuilder(
         future: loadChatUserProfile(receiverId),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             var chatUserProfile = snapshot.data;
-            return Row(
-              children: <Widget>[
-                Container(
-                  width: 45.0,
-                  height: 45.0,
-                  child: GestureDetector(
-                    child: Icon(Icons.arrow_back),
-                    onTap: (){
-                      Navigator.pop(context);
-                    },
+            return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 2,
                   ),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                Container(
-                  width: 45.0,
-                  height: 45.0,
-                  decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: new DecorationImage(
-                        fit: BoxFit.fill,
-                        image: new NetworkImage(chatUserProfile['user']['avatar']),
-                      )
-                  ),
-                ),
-                Container(
-                    padding: EdgeInsets.all(9),
-                    child: Row(
-                      children: <Widget>[
-                        Center(
-                            child: Text(chatUserProfile['user']['names'],
-                                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
-                            )
-                        ),
-                      ],
-                    )
-                ),
-              ],
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      width: 45.0,
+                      height: 45.0,
+                      child: GestureDetector(
+                        child: Icon(Icons.arrow_back),
+                        onTap: (){
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    Container(
+                      width: 45.0,
+                      height: 45.0,
+                      decoration: new BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: new DecorationImage(
+                            fit: BoxFit.fill,
+                            image: new NetworkImage(chatUserProfile['user']['avatar']),
+                          )
+                      ),
+                    ),
+                    Container(
+                        padding: EdgeInsets.all(9),
+                        child: Row(
+                          children: <Widget>[
+                            Center(
+                                child: Text(chatUserProfile['user']['names'],
+                                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
+                                )
+                            ),
+                          ],
+                        )
+                    ),
+                  ],
+                )
             );
           } else if (snapshot.hasError) {
             return Text("${snapshot.error}");
@@ -139,9 +164,18 @@ class _ChatScreen extends State<ChatScreen> {
       padding: EdgeInsets.fromLTRB(0,0,0,10),
       child: Row(
         children: <Widget>[
-          Container(
-            margin: EdgeInsets.all(5),
-            child: Icon(Icons.mood, color: Colors.grey[700]),
+          GestureDetector(
+            child: Container(
+              width: 25,
+              margin: EdgeInsets.all(5),
+              child: Icon(Icons.mood, size: 28, color: Colors.grey[700]),
+            ),
+            onTap: (){
+              print('clicking something');
+//              setState(() {
+//                isShowSticker = !isShowSticker;
+//              });
+            },
           ),
           Flexible(
             flex: 1,
@@ -179,6 +213,19 @@ class _ChatScreen extends State<ChatScreen> {
     );
   }
 
+  Widget buildSticker() {
+    return EmojiPicker(
+      rows: 3,
+      columns: 7,
+      buttonMode: ButtonMode.MATERIAL,
+      recommendKeywords: ["racing", "horse"],
+      numRecommended: 10,
+      onEmojiSelected: (emoji, category) {
+        print(emoji);
+      },
+    );
+  }
+
   // sender chat message call out
   Widget senderChat(message){
     return Bubble(
@@ -186,7 +233,12 @@ class _ChatScreen extends State<ChatScreen> {
       alignment: Alignment.topRight,
       nip: BubbleNip.rightTop,
       color: Colors.blueAccent,
-      child: Text('${message['message']['body']}', textAlign: TextAlign.right, style: TextStyle(color: Colors.white)),
+      child: Column(
+        children: [
+          Text('${message['message']['body']}', textAlign: TextAlign.right, style: TextStyle(color: Colors.white)),
+          Text('${message['message']['createdAt']}', textAlign: TextAlign.right, style: TextStyle(color: Colors.white70, fontSize: 10))
+        ],
+      ),
     );
   }
 
@@ -196,7 +248,12 @@ class _ChatScreen extends State<ChatScreen> {
       margin: BubbleEdges.only(top: 10),
       alignment: Alignment.topLeft,
       nip: BubbleNip.leftTop,
-      child: Text('${message['message']['body']}'),
+      child: Column(
+        children: [
+          Text('${message['message']['body']}', style: TextStyle(color: Colors.black54)),
+          Text('${message['message']['createdAt']}', style: TextStyle(color: Colors.black45, fontSize: 10))
+        ],
+      ),
     );
   }
 
@@ -226,22 +283,25 @@ class _ChatScreen extends State<ChatScreen> {
       child: Scaffold(
         body: Container(
           color: Colors.white,
-          child: Stack(
-            children: [
-              Image.asset("assets/images/zlay_chat_bg.jpg",
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                fit: BoxFit.cover,
-              ),
-              Column(
-                children: <Widget>[
-                  _chatTitleArea(context),
-                  _chatMessageArea(context),
-                  _chatInputArea(context)
-                ],
-              ),
-            ],
-          ),
+          child: WillPopScope(
+              child: Stack(
+              children: [
+                Image.asset("assets/images/zlay_chat_bg.png",
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                  fit: BoxFit.cover,
+                ),
+                Column(
+                  children: <Widget>[
+                    _chatTitleArea(context),
+                    _chatMessageArea(context),
+                    _chatInputArea(context)
+                  ],
+                ),
+              ],
+            ),
+            onWillPop: onBackPress,
+          )
         ),
       ),
     );

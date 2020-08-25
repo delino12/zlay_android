@@ -73,6 +73,75 @@ Future registerUserAccount(String name, String username, String email, String pa
   }
 }
 
+// Forgot password retriever
+Future verifyRegisteredMobile(phone) async {
+  final http.Response response = await http.post('http://zlayit.net/reset/verify/mobile',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'phone': phone,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User verification failed!');
+  }
+}
+
+// Forgot password retriever
+Future sendPasswordResetCode(phone) async {
+  var prefs = await SharedPreferences.getInstance();
+  int generatedCode = 198388;
+  prefs.setInt('reset_pass_code', generatedCode);
+
+  final http.Response response = await http.post('http://zlayit.net/reset',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'message': 'Your password reset code is $generatedCode',
+      'sender': 'Zlay',
+      'mobiles': phone,
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User reset code failed!');
+  }
+}
+
+// change password
+Future changePassword(password) async {
+  final http.Response response = await http.post('http://zlayit.net/reset/change/password',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, dynamic>{
+      'password': password
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    var responseData = json.decode(response.body);
+    print(responseData);
+    return responseData;
+  } else if(response.statusCode != 200) {
+    print(json.decode(response.body));
+    print('User change password failed!');
+  }
+}
+
 // send liked action on a post
 Future likeTimelinePost(postId, reaction) async {
   final prefs        = await SharedPreferences.getInstance();
@@ -190,14 +259,15 @@ Future sendCommentNotification(postId) async {
 
 // replied comments
 Future fetchCommentReplies(commentId) async {
-  String query = '?comment=$commentId';
+
+  String query = '?comment_id=$commentId';
   final http.Response response = await http.get('http://zlayit.net/replies$query',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       }
   );
   if (response.statusCode == 200) {
-    var responseData = json.decode(response.body);
+    var responseData = json.decode(response.body)['data'];
     print(responseData);
     return responseData;
   } else if(response.statusCode != 200) {
@@ -312,6 +382,7 @@ Future<void> loadUserRecentPost(String userId) async {
   }
 }
 
+// load user recent post
 Future loadUserProfileRecentPost() async {
   var prefs =  await SharedPreferences.getInstance();
   final String userId = prefs.getString('_userId');
@@ -368,9 +439,12 @@ Future<void> addToView(String mediaId) async {
 
 // fetch real timeline post
 Future<void> fetchTimelinePosts() async {
-  final response = await http.get('http://zlayit.net/posts');
+  final prefs        = await SharedPreferences.getInstance();
+  String userId      = prefs.getString('_userId');
+  final response = await http.get('http://zlayit.net/posts?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
+    await writeTimelinePost(response.body);
     var responseData = json.decode(response.body)['posts'];
     return responseData;
   } else {
@@ -393,22 +467,11 @@ Future<void> loadUserProfile(profileUserId) async {
 }
 
 // fetch timeline post
-Future<void> fetchTimelinePostToFile() async {
-  final http.Response response = await http.get('http://zlayit.net/posts',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      }
-  );
-  if (response.statusCode == 200) {
-    await writeTimelinePost(response.body);
+Future<dynamic> fetchTimelinePostToFile() async {
     var responseDataFromLocal = await readTimelineFromFile();
     print(responseDataFromLocal);
-    var responseData = json.decode(response.body)['posts'];
+    var responseData = json.decode(responseDataFromLocal);
     return responseData;
-  } else if(response.statusCode != 200) {
-    print(json.decode(response.body));
-    print('Error fetching zlay tv timeline posts!');
-  }
 }
 
 // locate directory path
@@ -482,6 +545,22 @@ Future fetchFollowings() async {
   } else {
     // If the server did not return a 200 OK response, then throw an exception.
     throw Exception('Failed to load notifications from API');
+  }
+}
+
+// fetch all favorite
+Future fetchFavorites() async {
+  final prefs = await SharedPreferences.getInstance();
+  final userId = prefs.getString('_userId');
+
+  final response = await http.get('http://zlayit.net/favorites?user_id=$userId');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    List collections = json.decode(response.body)['data'];
+    return collections;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load favorites from API');
   }
 }
 
@@ -579,8 +658,8 @@ Future sendChatMessageNotification(message, senderId, receiverId, chatId) async 
   }
 }
 
+// display notifications bar
 class DisplayNotification extends StatefulWidget {
-
   @override
   _DisplayNotification createState() => _DisplayNotification();
 }
@@ -621,6 +700,7 @@ class _DisplayNotification extends State<DisplayNotification> {
   }
 }
 
+// init firebase notification
 class FirebaseNotifications {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   FirebaseMessaging _firebaseMessaging;

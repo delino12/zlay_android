@@ -629,7 +629,7 @@ class _CommentScreen extends State<CommentScreen> {
                       onTap: (){
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CommentRepliesScreen(comment: comment)),
+                          MaterialPageRoute(builder: (context) => CommentRepliesScreen(commentId: comment['_id'])),
                         );
                       },
                     )

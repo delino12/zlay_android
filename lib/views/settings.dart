@@ -71,28 +71,6 @@ class _SettingScreen extends State<SettingScreen>{
                 child: ListView(
                   children: <Widget>[
                     ListTile(
-                      leading: Icon(Icons.account_circle, size: 24.0),
-                      title: Text('Account', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
-                      dense: true,
-                      onTap: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AccountSetting()),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.forum, size: 24.0),
-                      title: Text('Chat setting', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
-                      dense: true,
-                      onTap: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MessageSetting()),
-                        );
-                      },
-                    ),
-                    ListTile(
                       leading: Icon(Icons.supervisor_account, size: 24.0),
                       title: Text('Invite a friend', style: TextStyle(fontSize: 14.0, color: Colors.grey[500])),
                       dense: true,

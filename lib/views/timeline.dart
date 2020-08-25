@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:Zlay/models/profile.dart';
 import 'package:Zlay/models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttericon/font_awesome_icons.dart';
 import 'package:video_player/video_player.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:Zlay/widgets/loader.dart';
@@ -11,6 +12,7 @@ import 'package:Zlay/widgets/ProfileMenu.dart';
 import 'package:Zlay/views/comments.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:Zlay/views/viewProfile.dart';
+import 'package:fluttericon/font_awesome_icons.dart';
 
 class PreviewVideoPlayer extends StatefulWidget {
   final String url;
@@ -270,11 +272,12 @@ class Timeline extends StatefulWidget {
 class _Timeline extends State<Timeline> {
   ScrollController _controller;
   var timelinePosts;
+  var offlineTimelinePosts;
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   var mediaType;
   var likeColor = Colors.black;
   bool topScroll = true;
-  bool postLike;
+  bool isLikeByUser;
 
   @override
   void initState() {
@@ -282,7 +285,6 @@ class _Timeline extends State<Timeline> {
     _controller = ScrollController();
     _controller.addListener(_scrollListener);
   }
-
   _scrollListener() {
     if (_controller.offset <= _controller.position.maxScrollExtent) {
       setState(() {
@@ -335,7 +337,7 @@ class _Timeline extends State<Timeline> {
     return Container(
       child: Flexible(
         flex: 1,
-        fit: FlexFit.loose,
+        fit: FlexFit.tight,
         child: Container(
           padding: EdgeInsets.all(4),
           height: 200,
@@ -359,119 +361,158 @@ class _Timeline extends State<Timeline> {
     );
   }
 
+  Widget buildPostTopMenu(post){
+    return GestureDetector(
+      child: Container(
+        padding: EdgeInsets.all(5),
+        child: Row(
+          children: <Widget>[
+            Container(
+              width: 35.0,
+              height: 35.0,
+              decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: new DecorationImage(
+                    fit: BoxFit.fill,
+                    image: new NetworkImage(post['user']['avatar']),
+                  )
+              ),
+            ),
+            Flexible(
+              flex: 1,
+              fit: FlexFit.tight,
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(5, 5, 0, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(post['user']['username'],
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                        textAlign: TextAlign.left,
+                      ),
+                      Text('Surulere Lagos',
+                        style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                      ),
+                    ],
+                  )
+              ),
+            ),
+            Icon(Icons.more_vert),
+          ],
+        ),
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ViewProfileScreen(userId: post['user']['_id'])),
+        );
+      },
+    );
+  }
+
+  Widget buildPostIconMenu(post){
+    if(post['isLikeByUser'] == "yes"){
+      isLikeByUser = true;
+    }else if(post['isLikeByUser'] == "no"){
+      isLikeByUser = false;
+    }
+    return Container(
+        child: Row(
+          children: <Widget>[
+            GestureDetector(
+              child: Container(
+                  padding: EdgeInsets.all(5),
+                  child: Row(
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(5),
+                        child: post['isLikeByUser'] ? Icon(FontAwesome.heart_empty, size: 24, color: Colors.redAccent) :
+                        Icon(FontAwesome.heart_empty, size: 24, color: likeColor,),
+                      ),
+                      Text(post['likes'], style: TextStyle(fontSize: 12)),
+                    ],
+                  )
+              ),
+              onTap: () async {
+                setState(() {
+                  likeColor = Colors.redAccent;
+                });
+                await likeTimelinePost(post['post']['_id'], 'happy');
+              },
+            ),
+            GestureDetector(
+              child: Container(
+                padding: EdgeInsets.all(5),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.all(5),
+                      child: Icon(Icons.chat_bubble_outline, size: 24),
+                    ),
+                    Text(post['comments'], style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+              ),
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CommentScreen(post: post)),
+                );
+              },
+            ),
+            Container(
+              padding: EdgeInsets.all(5),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.all(5),
+                    child: Icon(Icons.share, size: 24),
+                  ),
+                  Text('', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+            ),
+          ],
+        )
+    );
+  }
+
+  Widget buildPostContentText(post){
+    return Container(
+      padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+      child: Text(post['post']['contents']),
+    );
+  }
+
+  Widget buildPostViewSection(post){
+    return Container(
+      padding: EdgeInsets.fromLTRB(5, 2, 0, 0),
+      child: Row(
+        children: [
+          Text('${post['views']}', style: TextStyle(fontSize: 12))
+        ],
+      ),
+    );
+  }
+
+  Widget buildPostTimeCreatedSection(post){
+    return Container(
+      padding: EdgeInsets.fromLTRB(5, 2, 0, 0),
+      child: Text(post['post']['createdAt'], style: TextStyle(fontSize: 12)),
+    );
+  }
+
   Widget postWithImages (dynamic post) => Container(
     margin: EdgeInsets.fromLTRB(0,0,0,15),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        GestureDetector(
-          child: Container(
-            padding: EdgeInsets.all(5),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 35.0,
-                  height: 35.0,
-                  decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: new DecorationImage(
-                        fit: BoxFit.fill,
-                        image: new NetworkImage(post['user']['avatar']),
-                      )
-                  ),
-                ),
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.tight,
-                  child: Container(
-                      margin: EdgeInsets.fromLTRB(5, 5, 0, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(post['user']['username'],
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                            textAlign: TextAlign.left,
-                          ),
-                          Text('Surulere Lagos',
-                            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-                          ),
-                        ],
-                      )
-                  ),
-                ),
-                Icon(Icons.more_vert),
-              ],
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ViewProfileScreen(userId: post['user']['_id'])),
-            );
-          },
-        ),
+        buildPostTopMenu(post),
         ImageSlider(media: post['media']),
-        Container(
-            child: Row(
-              children: <Widget>[
-                GestureDetector(
-                  child: Container(
-                      padding: EdgeInsets.all(5),
-                      child: Row(
-                        children: <Widget>[
-                          Icon(Icons.favorite_border, size: 24, color: likeColor),
-                          Text(post['likes'], style: TextStyle(fontSize: 12)),
-                        ],
-                      )
-                  ),
-                  onTap: () async {
-                    setState(() {
-                      likeColor = Colors.redAccent;
-                    });
-                    await likeTimelinePost(post['post']['_id'], 'happy');
-                  },
-                ),
-                GestureDetector(
-                  child: Container(
-                    padding: EdgeInsets.all(5),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(Icons.chat_bubble_outline, size: 24),
-                        Text(post['comments'], style: TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  onTap: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CommentScreen(post: post)),
-                    );
-                  },
-                ),
-                Container(
-                  padding: EdgeInsets.all(5),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.share, size: 24),
-                      Text('', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ],
-            )
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post['post']['contents']),
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text('349 views', style: TextStyle(fontSize: 12)),
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post['post']['createdAt'], style: TextStyle(fontSize: 12)),
-        ),
+        buildPostIconMenu(post),
+        buildPostContentText(post),
+        buildPostViewSection(post),
+        buildPostTimeCreatedSection(post),
       ],
     ),
   );
@@ -481,106 +522,12 @@ class _Timeline extends State<Timeline> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        GestureDetector(
-          child: Container(
-            padding: EdgeInsets.all(5),
-            child: Row(
-              children: <Widget>[
-                Container(
-                  width: 35.0,
-                  height: 35.0,
-                  decoration: new BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: new DecorationImage(
-                        fit: BoxFit.fill,
-                        image: new NetworkImage(post['user']['avatar']),
-                      )
-                  ),
-                ),
-                Flexible(
-                  flex: 1,
-                  fit: FlexFit.tight,
-                  child: Container(
-                      margin: EdgeInsets.fromLTRB(5, 5, 0, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(post['user']['username'],
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                            textAlign: TextAlign.left,
-                          ),
-                          Text('Surulere Lagos',
-                            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-                          ),
-                        ],
-                      )
-                  ),
-                ),
-                Icon(Icons.more_vert),
-              ],
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ViewProfileScreen(userId: post['user']['_id'])),
-            );
-          },
-        ),
+        buildPostTopMenu(post),
         PreviewVideoPlayer(url: post['media'][0]['media_url']),
-        Container(
-            child: Row(
-              children: <Widget>[
-                Container(
-                    padding: EdgeInsets.all(5),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(Icons.favorite_border, size: 24),
-                        Text('', style: TextStyle(fontSize: 12)),
-                      ],
-                    )
-                ),
-                GestureDetector(
-                  child: Container(
-                    padding: EdgeInsets.all(5),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(Icons.chat_bubble_outline, size: 24),
-                        Text('', style: TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  onTap: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CommentScreen()),
-                    );
-                  },
-                ),
-                Container(
-                  padding: EdgeInsets.all(5),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(Icons.share, size: 24),
-                      Text('', style: TextStyle(fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ],
-            )
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post['post']['contents'], style: TextStyle(fontSize: 14)),
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text('349 views', style: TextStyle(fontSize: 12)),
-        ),
-        Container(
-          padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-          child: Text(post['post']['createdAt'], style: TextStyle(fontSize: 12)),
-        ),
+        buildPostIconMenu(post),
+        buildPostContentText(post),
+        buildPostViewSection(post),
+        buildPostTimeCreatedSection(post),
       ],
     ),
   );
@@ -603,13 +550,27 @@ class _Timeline extends State<Timeline> {
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     timelinePosts = snapshot.data;
-
                     return RefreshIndicator(
                       key: refreshKey,
                       onRefresh: refreshList,
                       child: timelineListView(timelinePosts),
                     );
                   } else if(snapshot.hasError) {
+                    FutureBuilder(
+                      future: fetchTimelinePostToFile(),
+                      builder: (context, snapshot) {
+                        if(snapshot.hasData){
+                          timelinePosts = snapshot.data;
+                          return RefreshIndicator(
+                            key: refreshKey,
+                            onRefresh: refreshList,
+                            child: timelineListView(timelinePosts),
+                          );
+                        }else{
+                          return Text('Poor or no internet connection!');
+                        }
+                      },
+                    );
                     return Text("Internet connection lost!");
                   }
                   return Center(

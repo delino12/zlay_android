@@ -13,7 +13,6 @@ Future<bool> isLoginStatus() async {
 }
 
 class MyApp extends StatefulWidget {
-
   @override
   _MyApp createState() => _MyApp();
 }
@@ -23,14 +22,13 @@ class _MyApp extends State<MyApp> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Zlay Flutter',
+      title: 'Zlay',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -40,8 +38,7 @@ class _MyApp extends State<MyApp> {
           builder:(BuildContext context, AsyncSnapshot<bool> snapshot){
             if (snapshot.data == false){
               return LoginWidget();
-            }
-            else{
+            } else{
               return MyHomePage(title: 'Timeline');
             }
           }

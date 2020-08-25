@@ -1,48 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:Zlay/widgets/loader.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter/services.dart';
-import 'package:contacts_service/contacts_service.dart';
+import 'package:Zlay/widgets/authenticationWidget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class InviteFriends extends StatefulWidget {
+class EditProfile extends StatefulWidget {
+  final String title;
+  EditProfile({Key key, this.title}) : super(key: key);
+
   @override
-  _InviteFriends createState() => _InviteFriends();
+  _EditProfile createState() => _EditProfile();
 }
-class _InviteFriends extends State<InviteFriends> {
-  // Get all contacts on device as a stream
-  Iterable<Contact> contacts;
-  bool isReady = false;
+class _EditProfile extends State<EditProfile>{
 
-  @override
-  void initState(){
-    super.initState();
-    _getContact();
-  }
-
-  _getContact() async {
-    var loaded = await ContactsService.getContacts(withThumbnails: false);
-    setState(() {
-      contacts = loaded;
-      isReady = true;
-    });
-  }
-
-  ListView contactListView (contacts){
-    return ListView.builder(
-      itemCount: contacts.length,
-      itemBuilder: (context, index){
-        return buildContactList(contacts[index]);
-      },
-    );
-  }
-
-  Widget buildContactList(contact){
-    return ListTile(
-      leading: Icon(Icons.contacts),
-      title: Text('Phone here..'),
-      subtitle: Text('Invites to Zlay'),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +22,7 @@ class _InviteFriends extends State<InviteFriends> {
             children: <Widget>[
               Container(
                 width: double.infinity,
-                height: 55,
+                height: 60,
                 color: Colors.white,
                 margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
                 child: Row(
@@ -74,7 +42,7 @@ class _InviteFriends extends State<InviteFriends> {
                         child: Row(
                           children: <Widget>[
                             Center(
-                                child: Text('Invite Friends',
+                                child: Text('Edit Profile',
                                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16)
                                 )
                             ),
@@ -85,9 +53,7 @@ class _InviteFriends extends State<InviteFriends> {
                 ),
               ),
               Expanded(
-                child: isReady ? contactListView(contacts) : Center(
-                      child: ShowLoader(),
-                )
+                child: Container(),
               ),
             ],
           ),

@@ -14,9 +14,10 @@ class LoginWidget extends StatefulWidget{
   final String title;
   LoginWidget({Key key, this.title}) : super(key: key);
 
-  _loginOptionWidget createState() => _loginOptionWidget();
+  @override
+  _LoginWidget createState() => _LoginWidget();
 }
-class _loginOptionWidget extends State<LoginWidget> {
+class _LoginWidget extends State<LoginWidget> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -26,6 +27,63 @@ class _loginOptionWidget extends State<LoginWidget> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  // login user
+  Future<void> __authLoginUser(email, password) async {
+    final http.Response response = await http.post('http://zlayit.net/auth',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      var responseData = json.decode(response.body);
+      if(responseData['status'] == true){
+        _save(responseData);
+        ToastMessage('success', responseData['message']);
+        setState((){
+          // goto index widgets
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => new IndexWidget()),
+          );
+        });
+      }else{
+        ToastMessage('error', responseData['message']);
+      }
+    } else {
+      ToastMessage('error', 'Login failed try again!');
+      throw Exception('Login failed try again!');
+    }
+  }
+
+  // save login data
+  Future<void> _save(loginResponse) async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool _isLogin    = true;
+    final String _token    = loginResponse['token'];
+    final String _email    = loginResponse['data']['email'];
+    final String _userId   = loginResponse['data']['_id'];
+    final String _username = loginResponse['data']['username'];
+    final String _names    = loginResponse['data']['names'];
+    final String _phone    = loginResponse['data']['phone'];
+    final int _status      = loginResponse['data']['status'];
+    final String _avatar   = loginResponse['data']['avatar'];
+
+    prefs.setBool('_isLogin', _isLogin);
+    prefs.setString('_token', _token);
+    prefs.setString('_email', _email);
+    prefs.setString('_userId', _userId);
+    prefs.setString('_username', _username);
+    prefs.setString('_names', _names);
+    prefs.setString('_phone', _phone);
+    prefs.setInt('_status', _status);
+    prefs.setString('_avatar', _avatar);
   }
 
   Widget _loginStatus (message){
@@ -204,63 +262,6 @@ class _loginOptionWidget extends State<LoginWidget> {
         ),
       );
   }
-
-  Future<void> _save(loginResponse) async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool _isLogin    = true;
-    final String _token    = loginResponse['token'];
-    final String _email    = loginResponse['data']['email'];
-    final String _userId   = loginResponse['data']['_id'];
-    final String _username = loginResponse['data']['username'];
-    final String _names    = loginResponse['data']['names'];
-    final String _phone    = loginResponse['data']['phone'];
-    final int _status      = loginResponse['data']['status'];
-    final String _avatar   = loginResponse['data']['avatar'];
-
-    prefs.setBool('_isLogin', _isLogin);
-    prefs.setString('_token', _token);
-    prefs.setString('_email', _email);
-    prefs.setString('_userId', _userId);
-    prefs.setString('_username', _username);
-    prefs.setString('_names', _names);
-    prefs.setString('_phone', _phone);
-    prefs.setInt('_status', _status);
-    prefs.setString('_avatar', _avatar);
-  }
-
-  Future<void> __authLoginUser(email, password) async {
-    final http.Response response = await http.post('http://zlayit.net/auth',
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'email': email,
-        'password': password,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      var responseData = json.decode(response.body);
-      print(responseData);
-      if(responseData['status'] == true){
-        _save(responseData);
-        ToastMessage('success', responseData['message']);
-        setState((){
-            // goto index widgets
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => new IndexWidget()),
-            );
-        });
-      }else{
-        ToastMessage('error', responseData['message']);
-      }
-      return responseData;
-    } else {
-      ToastMessage('error', 'Login failed try again!');
-      throw Exception('Login failed try again!');
-    }
-  }
 }
 
 // Signup Widget on state
@@ -320,232 +321,252 @@ class _SignUpWidget extends State<SignUpWidget> {
     return SafeArea(
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        body: Container(
-        child: ListView(
-          children: <Widget>[
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.all(15),
-              child: Column(
-                children: <Widget>[
-                  Container(
-                    margin: EdgeInsets.all(25),
-                    width: double.infinity,
-                    padding: EdgeInsets.all(15),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Image.asset('assets/images/logo_no_icon.png',
-                              height: 48,
-                              fit: BoxFit.fill
-                          ),
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+          child: Center(
+            child: Column(
+              children: [
+                Container(
+                  height: size.height,
+                  color: Colors.white,
+                  padding: EdgeInsets.all(15),
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        margin: EdgeInsets.all(25),
+                        width: double.infinity,
+                        padding: EdgeInsets.all(15),
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              child: Image.asset('assets/images/logo_no_icon.png',
+                                  height: 48,
+                                  fit: BoxFit.fill
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: nameController,
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                              hintText: 'Name'
-                          ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: nameController,
+                              decoration: new InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                                  hintText: 'Name'
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: new Divider(
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: usernameController,
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                              hintText: 'Username'
-                          ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: new Divider(
+                          color: Colors.blueAccent,
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: new Divider(
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: emailController,
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                              hintText: 'Email'
-                          ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: usernameController,
+                              decoration: new InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                                  hintText: 'Username'
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: new Divider(
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: passwordController,
-                          obscureText: true,
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                              hintText: 'Password'
-                          ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: new Divider(
+                          color: Colors.blueAccent,
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: new Divider(
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        TextField(
-                          controller: phoneController,
-                          decoration: new InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                              hintText: 'Phone'
-                          ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: emailController,
+                              decoration: new InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                                  hintText: 'Email'
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: new Divider(
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
-                    child: Row(
-                      children: <Widget>[
-                        Checkbox(value: _value1, onChanged: _value1Changed),
-                        Text('Male'),
-                        Container(
-                          width: 34,
-                          margin: EdgeInsets.fromLTRB(2, 2, 2, 2),
+                      ),
+                      Container(
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: new Divider(
+                          color: Colors.blueAccent,
                         ),
-                        Checkbox(value: _value2, onChanged: _value2Changed),
-                        Text('Female'),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 25,
-                    margin: EdgeInsets.fromLTRB(2, 2, 2, 2),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          width: MediaQuery.of(context).size.width,
-                          margin: EdgeInsets.fromLTRB(10, 1, 10, 15),
-                          height: 45,
-                          decoration: new BoxDecoration(
-                            borderRadius: new BorderRadius.circular(20.0),
-                          ),
-                          child: RaisedButton(
-                            child: Text('REGISTER'),
-                            color: Colors.blueAccent,
-                            textColor: Colors.white,
-                            onPressed: () async {
-                              var name = nameController.text;
-                              var username = usernameController.text;
-                              var email = emailController.text;
-                              var password = passwordController.text;
-                              var phone = phoneController.text;
-                              var gender = _gender;
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: passwordController,
+                              obscureText: true,
+                              decoration: new InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                                  hintText: 'Password'
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: new Divider(
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            TextField(
+                              controller: phoneController,
+                              decoration: new InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                                  hintText: 'Phone'
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: new Divider(
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                      Container(
+                        width: MediaQuery.of(context).size.width,
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                        child: Row(
+                          children: <Widget>[
+                            Checkbox(value: _value1, onChanged: _value1Changed),
+                            Text('Male'),
+                            Container(
+                              width: 34,
+                              margin: EdgeInsets.fromLTRB(2, 2, 2, 2),
+                            ),
+                            Checkbox(value: _value2, onChanged: _value2Changed),
+                            Text('Female'),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 25,
+                        margin: EdgeInsets.fromLTRB(2, 2, 2, 2),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: <Widget>[
+                            Container(
+                              width: MediaQuery.of(context).size.width,
+                              margin: EdgeInsets.fromLTRB(10, 1, 10, 15),
+                              height: 45,
+                              decoration: new BoxDecoration(
+                                borderRadius: new BorderRadius.circular(20.0),
+                              ),
+                              child: RaisedButton(
+                                child: Text('REGISTER'),
+                                color: Colors.blueAccent,
+                                textColor: Colors.white,
+                                onPressed: () async {
+                                  var name = nameController.text;
+                                  var username = usernameController.text;
+                                  var email = emailController.text;
+                                  var password = passwordController.text;
+                                  var phone = phoneController.text;
+                                  var gender = _gender;
 
-                              var response = await registerUserAccount(name, username, email, password, "$phone", "$gender");
-                              print(response);
-                              if(response['status'] == "success"){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => LoginWidget()),
-                                );
-                              }
+                                  var response = await registerUserAccount(name, username, email, password, "$phone", "$gender");
+                                  print(response);
+                                  if(response['status'] == "success"){
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => LoginWidget()),
+                                    );
+                                  }
 
-                              ToastMessage(response['status'], response['message']);
-                            },
-                          ),
+                                  ToastMessage(response['status'], response['message']);
+                                },
+                              ),
+                            ),
+                            Container(
+                              height: 45,
+                              decoration: new BoxDecoration(
+                                borderRadius: new BorderRadius.circular(20.0),
+                              ),
+                              width: 280,
+                              child: FlatButton(
+                                child: Text('Already have an account? Log in'),
+                                color: Colors.white,
+                                textColor: Colors.grey,
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => LoginWidget()),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        Container(
-                          height: 45,
-                          decoration: new BoxDecoration(
-                            borderRadius: new BorderRadius.circular(20.0),
-                          ),
-                          width: 280,
-                          child: FlatButton(
-                            child: Text('Already have an account? Log in'),
-                            color: Colors.white,
-                            textColor: Colors.grey,
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => LoginWidget()),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
 }
 
 // Reset password widgets
-class ResetPasswordWidget extends StatelessWidget {
+class ResetPasswordWidget extends StatefulWidget {
+  _ResetPasswordWidget createState() => _ResetPasswordWidget();
+}
+class _ResetPasswordWidget extends State<ResetPasswordWidget> {
+  var resetEmailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    resetEmailController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -580,11 +601,12 @@ class ResetPasswordWidget extends StatelessWidget {
                 child: Column(
                   children: <Widget>[
                     TextField(
+                      controller: resetEmailController,
                       decoration: new InputDecoration(
                           border: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
-                          hintText: 'Email or phone number'
+                          hintText: 'Enter phone number'
                       ),
                     ),
                   ],
@@ -612,8 +634,296 @@ class ResetPasswordWidget extends StatelessWidget {
                         child: Text('RESET'),
                         color: Colors.blueAccent,
                         textColor: Colors.white,
+                        onPressed: () async {
+                          var res = await verifyRegisteredMobile(resetEmailController.text);
+                          if(res['status'] == "success"){
+                            await sendPasswordResetCode(resetEmailController.text);
+                            ToastMessage('success', res['message']);
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => new ResetVerifyCodeWidget()));
+                          }else{
+                            ToastMessage('error', res['message']);
+                          }
+                        },
+                      ),
+                    ),
+                    Container(
+                      height: 45,
+                      decoration: new BoxDecoration(
+                        borderRadius: new BorderRadius.circular(20.0),
+                      ),
+                      width: 280,
+                      child: FlatButton(
+                        child: Text('Already register? Log in'),
+                        color: Colors.white,
+                        textColor: Colors.grey,
                         onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginWidget()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
+// Verify Reset request
+class ResetVerifyCodeWidget extends StatefulWidget {
+  _ResetVerifyCodeWidget createState() => _ResetVerifyCodeWidget();
+}
+class _ResetVerifyCodeWidget extends State<ResetVerifyCodeWidget>{
+  var resetCodeController = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return SafeArea (
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          color: Colors.white,
+          padding: EdgeInsets.all(15),
+          child: Column(
+            children: <Widget>[
+              Container(
+                margin: EdgeInsets.all(25),
+                width: double.infinity,
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Image.asset('assets/images/logo_no_icon.png',
+                          height: 48,
+                          fit: BoxFit.fill
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 45,
+              ),
+              Container(
+                width: double.infinity,
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: resetCodeController,
+                      keyboardType: TextInputType.number,
+                      decoration: new InputDecoration(
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                          hintText: 'Enter verification code!'
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                child: new Divider(
+                  color: Colors.blueAccent,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      margin: EdgeInsets.fromLTRB(10, 1, 10, 15),
+                      height: 45,
+                      decoration: new BoxDecoration(
+                        borderRadius: new BorderRadius.circular(20.0),
+                      ),
+                      child: RaisedButton(
+                        child: Text('VERIFY'),
+                        color: Colors.blueAccent,
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          var pref = await SharedPreferences.getInstance();
+                          int resetPassCode = pref.getInt('reset_pass_code');
+                          int smsEnteredCode = int.parse(resetCodeController.text);
+                          if(resetPassCode == smsEnteredCode){
+                           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => new ChangePasswordScreen()));
+                          }
+                        },
+                      ),
+                    ),
+                    Container(
+                      height: 45,
+                      decoration: new BoxDecoration(
+                        borderRadius: new BorderRadius.circular(20.0),
+                      ),
+                      width: 280,
+                      child: FlatButton(
+                        child: Text('Already register? Log in'),
+                        color: Colors.white,
+                        textColor: Colors.grey,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginWidget()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Change Password
+class ChangePasswordScreen extends StatefulWidget {
+  _ChangePasswordScreen createState() => _ChangePasswordScreen();
+}
+class _ChangePasswordScreen extends State<ChangePasswordScreen> {
+
+  var passwordController = TextEditingController();
+  var confirmPasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    Size size = MediaQuery.of(context).size;
+    return SafeArea (
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Container(
+          color: Colors.white,
+          padding: EdgeInsets.all(15),
+          child: Column(
+            children: <Widget>[
+              Container(
+                margin: EdgeInsets.all(25),
+                width: double.infinity,
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      child: Image.asset('assets/images/logo_no_icon.png',
+                          height: 48,
+                          fit: BoxFit.fill
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 45,
+              ),
+              Container(
+                width: double.infinity,
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: new InputDecoration(
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                          hintText: 'New password!'
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: confirmPasswordController,
+                      obscureText: true,
+                      decoration: new InputDecoration(
+                          border: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
+                          hintText: 'Confirm password!'
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.fromLTRB(10, 0, 10, 5),
+                child: new Divider(
+                  color: Colors.blueAccent,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: Column(
+                  children: <Widget>[
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      margin: EdgeInsets.fromLTRB(10, 1, 10, 15),
+                      height: 45,
+                      decoration: new BoxDecoration(
+                        borderRadius: new BorderRadius.circular(20.0),
+                      ),
+                      child: RaisedButton(
+                        child: Text('UPDATE PASSWORD'),
+                        color: Colors.blueAccent,
+                        textColor: Colors.white,
+                        onPressed: () async {
+                          var password = passwordController.text;
+                          var confirmPassword = confirmPasswordController.text;
+                          if(password == confirmPassword){
+                            // change password
+                            var res = await changePassword(password);
+                            if(res['status'] == "success"){
+                              ToastMessage('success', res['message']);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => LoginWidget()),
+                              );
+                            }
+                          }else{
+                            ToastMessage('error', 'Password did not match!');
+                          }
                         },
                       ),
                     ),

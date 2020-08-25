@@ -47,7 +47,7 @@ class _UserList extends State<UserList>{
   Widget loadUsersView (users) {
     return ListView.builder(
       scrollDirection: Axis.horizontal,
-      shrinkWrap: true,
+//      shrinkWrap: true,
       itemCount: users.length,
       itemBuilder: (context, index){
         return buildUsersList(users[index]);
@@ -57,7 +57,8 @@ class _UserList extends State<UserList>{
 
   Widget buildUsersList(user){
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         GestureDetector(
           child: Container(
