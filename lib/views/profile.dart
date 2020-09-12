@@ -259,7 +259,7 @@ class _ProfileScreen extends State<ProfileScreen> {
                                     onTap: (){
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => EditProfile()),
+                                        MaterialPageRoute(builder: (context) => EditProfile(profile: profile)),
                                       );
                                     },
                                   )

@@ -13,6 +13,7 @@ import 'package:Zlay/views/comments.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:Zlay/views/viewProfile.dart';
 import 'package:fluttericon/font_awesome_icons.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PreviewVideoPlayer extends StatefulWidget {
   final String url;
@@ -276,15 +277,40 @@ class _Timeline extends State<Timeline> {
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   var mediaType;
   var likeColor = Colors.black;
+  var userAddress;
   bool topScroll = true;
   bool isLikeByUser;
+
+  var geolocator = Geolocator();
+  var locationOptions = LocationOptions(accuracy: LocationAccuracy.high, distanceFilter: 10);
+  Position position;
 
   @override
   void initState() {
     super.initState();
     _controller = ScrollController();
     _controller.addListener(_scrollListener);
+    getDeviceCoordinates();
   }
+
+  Future loadOfflineTimelinePosts() async {
+    var allOfflinePosts = await fetchTimelinePostToFile();
+    setState(() {
+      offlineTimelinePosts = allOfflinePosts;
+    });
+  }
+
+  Future getDeviceCoordinates() async {
+    var newPosition = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    var address = await convertCoordinatesToAddress(newPosition.longitude, newPosition.latitude);
+    setState(() {
+      position = newPosition;
+      userAddress = address;
+      print('device coordinates');
+      print(position);
+    });
+  }
+
   _scrollListener() {
     if (_controller.offset <= _controller.position.maxScrollExtent) {
       setState(() {
@@ -352,6 +378,10 @@ class _Timeline extends State<Timeline> {
       controller: _controller,
       itemCount: data?.length,
       itemBuilder: (context, index){
+        if(data[index]['post']['post_type'] == "3"){
+          return adsWithVideos(data[index]);
+        }
+
         if(data[index]['media'][0]['media_type'] == 1){
           return postWithImages(data[index]);
         }else{
@@ -359,6 +389,25 @@ class _Timeline extends State<Timeline> {
         }
       },
     );
+  }
+
+  Widget adsWithVideos (dynamic post)  => Container(
+    margin: EdgeInsets.fromLTRB(0,0,0,15),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        buildPostTopMenu(post),
+        PreviewVideoPlayer(url: post['media'][0]['media_url']),
+//        buildPostIconMenu(post),
+        buildPostContentText(post),
+        buildPostViewSection(post),
+        buildPostTimeCreatedSection(post),
+      ],
+    ),
+  );
+
+  Widget adsWithImages (dynamic post) {
+    return SizedBox.shrink();
   }
 
   Widget buildPostTopMenu(post){
@@ -532,6 +581,8 @@ class _Timeline extends State<Timeline> {
     ),
   );
 
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -556,21 +607,20 @@ class _Timeline extends State<Timeline> {
                       child: timelineListView(timelinePosts),
                     );
                   } else if(snapshot.hasError) {
+                    timelinePosts = offlineTimelinePosts;
+                    print(timelinePosts);
+
                     FutureBuilder(
                       future: fetchTimelinePostToFile(),
                       builder: (context, snapshot) {
-                        if(snapshot.hasData){
-                          timelinePosts = snapshot.data;
-                          return RefreshIndicator(
-                            key: refreshKey,
-                            onRefresh: refreshList,
-                            child: timelineListView(timelinePosts),
-                          );
-                        }else{
-                          return Text('Poor or no internet connection!');
-                        }
-                      },
-                    );
+                        print(snapshot.data);
+                        return RefreshIndicator(
+                          key: refreshKey,
+                          onRefresh: refreshList,
+                          child: timelineListView([]),
+                        );
+                    });
+//                    
                     return Text("Internet connection lost!");
                   }
                   return Center(

@@ -551,12 +551,7 @@ class _CommentScreen extends State<CommentScreen> {
     return ListView.builder(
       itemCount: comments.length,
       itemBuilder: (context, index){
-        index--;
-        if(index == -1){
-          return buildPostView(post);
-        }else{
-          return buildPostComments(comments[index]);
-        }
+        return buildPostComments(comments[index]);
       }
     );
   }
@@ -608,7 +603,7 @@ class _CommentScreen extends State<CommentScreen> {
                         Icon(Icons.favorite_border, size: 18, color: Colors.black54),
                         Container(
                           margin: EdgeInsets.fromLTRB(0,5,0,0),
-                          child: Text('42 likes'),
+                          child: Text(''),
                         ),
                       ],
                     ),
@@ -622,7 +617,7 @@ class _CommentScreen extends State<CommentScreen> {
                           Icon(Icons.reply, size: 18, color: Colors.black54),
                           Container(
                             margin: EdgeInsets.fromLTRB(0,5,0,0),
-                            child: Text('12 replies'),
+                            child: Text(''),
                           ),
                         ],
                       ),
@@ -659,8 +654,7 @@ class _CommentScreen extends State<CommentScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Container(
-          color: Colors.white,
+        body: Center(
           child: Column(
             children: <Widget>[
               Container(
@@ -701,7 +695,7 @@ class _CommentScreen extends State<CommentScreen> {
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       allPostComments = snapshot.data;
-                      allPostComments.add('first');
+//                      print(allPostComments);
                       return postCommentLists(allPostComments);
                     } else if (snapshot.hasError) {
                       return Text("${snapshot.error}");

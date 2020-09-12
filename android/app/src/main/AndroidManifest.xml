@@ -14,6 +14,8 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="Zlay"
         android:icon="@mipmap/ic_launcher">
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCgkb7h4dVYqS5Ix9C6eHzoMgLvRcVwVEQ"/>
 
         <provider
             android:name="androidx.work.impl.WorkManagerInitializer"

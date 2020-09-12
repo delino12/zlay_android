@@ -8,17 +8,17 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+// Application endpoint
+const api_endpoint = 'http://zlayit.net';
+
 // register user device token
 Future registerDeviceToken(token) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
   String deviceToken = token;
-
-  print('UserID: $userId');
-  print('Device Token: $deviceToken');
   String queryString = "?user_id=$userId&device_token=$deviceToken";
 
-  final http.Response response = await http.post('http://zlayit.net/firebase/device$queryString',
+  final http.Response response = await http.post('$api_endpoint/firebase/device$queryString',
     headers: <String, String>{
       'Content-Type': 'application/x-www-form-urlencoded',
       'user_id': userId,
@@ -49,7 +49,7 @@ Future displayLocalNotification(payload) async {
 
 // register user account and device
 Future registerUserAccount(String name, String username, String email, String password, String phone, String gender) async {
-  final http.Response response = await http.post('http://zlayit.net/user',
+  final http.Response response = await http.post('$api_endpoint/user',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -75,7 +75,7 @@ Future registerUserAccount(String name, String username, String email, String pa
 
 // Forgot password retriever
 Future verifyRegisteredMobile(phone) async {
-  final http.Response response = await http.post('http://zlayit.net/reset/verify/mobile',
+  final http.Response response = await http.post('$api_endpoint/reset/verify/mobile',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -100,7 +100,7 @@ Future sendPasswordResetCode(phone) async {
   int generatedCode = 198388;
   prefs.setInt('reset_pass_code', generatedCode);
 
-  final http.Response response = await http.post('http://zlayit.net/reset',
+  final http.Response response = await http.post('$api_endpoint/reset',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -123,7 +123,7 @@ Future sendPasswordResetCode(phone) async {
 
 // change password
 Future changePassword(password) async {
-  final http.Response response = await http.post('http://zlayit.net/reset/change/password',
+  final http.Response response = await http.post('$api_endpoint/reset/change/password',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -146,7 +146,7 @@ Future changePassword(password) async {
 Future likeTimelinePost(postId, reaction) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/likes',
+  final http.Response response = await http.post('$api_endpoint/likes',
     headers: <String, String>{
       'Content-Type': 'application/json',
       'user_id': userId,
@@ -171,7 +171,7 @@ Future likeTimelinePost(postId, reaction) async {
 
 // notify liked action on post
 Future notifyLikeOnTimelinePost(userId, postId) async {
-  final http.Response response = await http.post('http://zlayit.net/likes',
+  final http.Response response = await http.post('$api_endpoint/likes',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -194,7 +194,7 @@ Future notifyLikeOnTimelinePost(userId, postId) async {
 // fetch all comments
 Future fetchComments(String postId) async {
   String query = '?post_id=$postId';
-  final http.Response response = await http.get('http://zlayit.net/comments$query',
+  final http.Response response = await http.get('$api_endpoint/comments$query',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       }
@@ -212,7 +212,7 @@ Future fetchComments(String postId) async {
 Future postComment(postId, comment) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/comments',
+  final http.Response response = await http.post('$api_endpoint/comments',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -237,7 +237,7 @@ Future postComment(postId, comment) async {
 Future sendCommentNotification(postId) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/notifications/post/comment',
+  final http.Response response = await http.post('$api_endpoint/notifications/post/comment',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -259,9 +259,8 @@ Future sendCommentNotification(postId) async {
 
 // replied comments
 Future fetchCommentReplies(commentId) async {
-
   String query = '?comment_id=$commentId';
-  final http.Response response = await http.get('http://zlayit.net/replies$query',
+  final http.Response response = await http.get('$api_endpoint/replies$query',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       }
@@ -280,7 +279,7 @@ Future fetchCommentReplies(commentId) async {
 Future postCommentReply(commentId, comment) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/replies',
+  final http.Response response = await http.post('$api_endpoint/replies',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -305,7 +304,7 @@ Future postCommentReply(commentId, comment) async {
 Future sendCommentReplyNotification(commentId) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/notifications/comment/replies',
+  final http.Response response = await http.post('$api_endpoint/notifications/comment/replies',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -329,7 +328,7 @@ Future sendCommentReplyNotification(commentId) async {
 Future updateUserProfileInfo(name, username, phone) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/profile',
+  final http.Response response = await http.post('$api_endpoint/profile',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -353,7 +352,7 @@ Future updateUserProfileInfo(name, username, phone) async {
 
 // fetch all recent post
 Future fetchAllRecent() async {
-  final http.Response response = await http.get('http://zlayit.net/timeline/all-recent',
+  final http.Response response = await http.get('$api_endpoint/timeline/all-recent',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     }
@@ -371,7 +370,7 @@ Future fetchAllRecent() async {
 
 // fetch all user recent with args
 Future<void> loadUserRecentPost(String userId) async {
-  final response = await http.get('http://zlayit.net/timeline/recent?user_id=$userId');
+  final response = await http.get('$api_endpoint/timeline/recent?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['posts'];
@@ -386,7 +385,7 @@ Future<void> loadUserRecentPost(String userId) async {
 Future loadUserProfileRecentPost() async {
   var prefs =  await SharedPreferences.getInstance();
   final String userId = prefs.getString('_userId');
-  final response = await http.get('http://zlayit.net/timeline/recent?user_id=${userId}');
+  final response = await http.get('$api_endpoint/timeline/recent?user_id=${userId}');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['posts'];
@@ -399,7 +398,7 @@ Future loadUserProfileRecentPost() async {
 
 // fetch zlay timeline tv post
 Future<void> fetchZlayTvPost() async {
-  final http.Response response = await http.get('http://zlayit.net/timeline/tv/post',
+  final http.Response response = await http.get('$api_endpoint/timeline/tv/post',
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       }
@@ -417,7 +416,7 @@ Future<void> fetchZlayTvPost() async {
 Future<void> addToView(String mediaId) async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final http.Response response = await http.post('http://zlayit.net/views',
+  final http.Response response = await http.post('$api_endpoint/views',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -441,10 +440,9 @@ Future<void> addToView(String mediaId) async {
 Future<void> fetchTimelinePosts() async {
   final prefs        = await SharedPreferences.getInstance();
   String userId      = prefs.getString('_userId');
-  final response = await http.get('http://zlayit.net/posts?user_id=$userId');
+  final response = await http.get('$api_endpoint/posts?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
-    await writeTimelinePost(response.body);
     var responseData = json.decode(response.body)['posts'];
     return responseData;
   } else {
@@ -453,9 +451,22 @@ Future<void> fetchTimelinePosts() async {
   }
 }
 
+// convert coordinates to address
+Future convertCoordinatesToAddress(longitude, latitude)  async {
+  final response = await http.get('$api_endpoint/locations/points-to-address?longitude=$longitude&latitude=$latitude');
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response, then parse the JSON.
+    var responseData = json.decode(response.body)['data'];
+    return responseData;
+  } else {
+    // If the server did not return a 200 OK response, then throw an exception.
+    throw Exception('Failed to load address from coordinates API');
+  }
+}
+
 // fetch real timeline post
 Future<void> loadUserProfile(profileUserId) async {
-  final response = await http.get('http://zlayit.net/user/$profileUserId');
+  final response = await http.get('$api_endpoint/user/$profileUserId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     var responseData = json.decode(response.body)['data'];
@@ -469,8 +480,7 @@ Future<void> loadUserProfile(profileUserId) async {
 // fetch timeline post
 Future<dynamic> fetchTimelinePostToFile() async {
     var responseDataFromLocal = await readTimelineFromFile();
-    print(responseDataFromLocal);
-    var responseData = json.decode(responseDataFromLocal);
+    var responseData = json.decode(responseDataFromLocal)['posts'];
     return responseData;
 }
 
@@ -521,7 +531,7 @@ Future fetchFollowers() async {
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getString('_userId');
 
-  final response = await http.get('http://zlayit.net/follower?user_id=$userId');
+  final response = await http.get('$api_endpoint/follower?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['data'];
@@ -537,7 +547,7 @@ Future fetchFollowings() async {
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getString('_userId');
 
-  final response = await http.get('http://zlayit.net/following?user_id=$userId');
+  final response = await http.get('$api_endpoint/following?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['data'];
@@ -553,7 +563,7 @@ Future fetchFavorites() async {
   final prefs = await SharedPreferences.getInstance();
   final userId = prefs.getString('_userId');
 
-  final response = await http.get('http://zlayit.net/favorites?user_id=$userId');
+  final response = await http.get('$api_endpoint/favorites?user_id=$userId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['data'];
@@ -566,7 +576,7 @@ Future fetchFavorites() async {
 
 // load chat recipient user
 Future loadChatUserProfile(receiverId) async {
-  final response = await http.get('http://zlayit.net/user/$receiverId');
+  final response = await http.get('$api_endpoint/user/$receiverId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     var collections = json.decode(response.body)['data'];
@@ -582,7 +592,7 @@ Future fetchChatHistory() async {
   var pref = await SharedPreferences.getInstance();
   var senderId = pref.getString('_userId');
 
-  final response = await http.get('http://zlayit.net/chats/history?sender_id=$senderId');
+  final response = await http.get('$api_endpoint/chats/history?sender_id=$senderId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['data'];
@@ -598,7 +608,7 @@ Future fetchChat(senderId, receiverId) async {
   print('sender id: $senderId');
   print('receiver id: $receiverId');
 
-  final response = await http.get('http://zlayit.net/chats?sender_id=$senderId&receiver_id=$receiverId');
+  final response = await http.get('$api_endpoint/chats?sender_id=$senderId&receiver_id=$receiverId');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response, then parse the JSON.
     List collections = json.decode(response.body)['data'];
@@ -611,7 +621,7 @@ Future fetchChat(senderId, receiverId) async {
 
 // send chat
 Future sendChat(message, senderId, receiverId) async {
-  final http.Response response = await http.post('http://zlayit.net/chats',
+  final http.Response response = await http.post('$api_endpoint/chats',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -637,7 +647,7 @@ Future sendChat(message, senderId, receiverId) async {
 // send chat message notification
 Future sendChatMessageNotification(message, senderId, receiverId, chatId) async {
   print('sending chat notifications');
-  final http.Response response = await http.post('http://zlayit.net/notifications/notify/message',
+  final http.Response response = await http.post('$api_endpoint/notifications/notify/message',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
